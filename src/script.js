@@ -5,12 +5,15 @@ import earthVertexShader from "./shaders/earth/vertex.glsl"
 import earthFragmentShader from "./shaders/earth/fragment.glsl"
 import atmosphereVertexShader from "./shaders/atmosphere/vertex.glsl"
 import atmosphereFragmentShader from "./shaders/atmosphere/fragment.glsl"
+import sunVertexShader from "./shaders/sun/vertex.glsl"
+import sunFragmentShader from "./shaders/sun/fragment.glsl"
 
 /**
  * Base
  */
 // Debug
 const gui = new GUI()
+gui.hide()
 
 // Canvas
 const canvas = document.querySelector("canvas.webgl")
@@ -51,7 +54,8 @@ const earthSpecularCloudsTexture = textureLoader.load("./earth/specularClouds.jp
 earthSpecularCloudsTexture.anisotropy = 8
 
 // Mesh
-const earthGeometry = new THREE.SphereGeometry(1, 128, 128)
+// const earthGeometry = new THREE.SphereGeometry(1, 64, 64)
+const earthGeometry = new THREE.SphereGeometry(1, 32, 32)
 const earthMaterial = new THREE.ShaderMaterial({
   vertexShader: earthVertexShader,
   fragmentShader: earthFragmentShader,
@@ -67,7 +71,6 @@ const earthMaterial = new THREE.ShaderMaterial({
   },
 })
 const earth = new THREE.Mesh(earthGeometry, earthMaterial)
-earth.position.set(0, 0, 0)
 scene.add(earth)
 
 // Atmosphere
@@ -91,21 +94,32 @@ scene.add(atmosphere)
 /**
  * Sun
  */
+// cube Texture (something to do with the sun)
+
 // Coordinates
-const sunSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
+const earthSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
 const sunDirection = new THREE.Vector3()
 
-// Debug
-const debugSun = new THREE.Mesh(earth.geometry, new THREE.MeshBasicMaterial())
-scene.add(debugSun)
+// Sun Mesh
+const sunMaterial = new THREE.ShaderMaterial({
+  vertexShader: sunVertexShader,
+  fragmentShader: sunFragmentShader,
+  uniforms: {
+    uTime: { value: 0 },
+  },
+  transparent: true,
+})
+const sun = new THREE.Mesh(earth.geometry, sunMaterial)
+scene.add(sun)
 
 // Update
 const updateSun = () => {
   // Sun direction
-  sunDirection.setFromSpherical(sunSpherical)
+  sunDirection.setFromSpherical(earthSpherical)
 
   // Debug
-  debugSun.position.copy(sunDirection).multiplyScalar(5)
+  earth.position.copy(sunDirection).multiplyScalar(-50)
+  atmosphere.position.copy(earth.position)
 
   // Uniforms
   earthMaterial.uniforms.uSunDirection.value.copy(sunDirection)
@@ -114,8 +128,8 @@ const updateSun = () => {
 updateSun()
 
 // Tweaks
-gui.add(sunSpherical, "phi").min(0).max(Math.PI).onChange(updateSun)
-gui.add(sunSpherical, "theta").min(-Math.PI).max(Math.PI).onChange(updateSun)
+gui.add(earthSpherical, "phi").min(0).max(Math.PI).onChange(updateSun)
+gui.add(earthSpherical, "theta").min(-Math.PI).max(Math.PI).onChange(updateSun)
 gui.add(earthMaterial.uniforms.uClouds, "value").min(0).max(1).step(0.1).name("Clouds")
 
 /**
@@ -178,9 +192,9 @@ window.addEventListener("resize", () => {
  */
 // Base camera
 const camera = new THREE.PerspectiveCamera(25, sizes.width / sizes.height, 0.1, 800)
-camera.position.x = 12
-camera.position.y = 5
-camera.position.z = 4
+camera.position.x = 12 - 6
+camera.position.y = 5 - 6
+camera.position.z = 4 - 6
 scene.add(camera)
 
 // Controls
@@ -198,6 +212,9 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(sizes.pixelRatio)
 renderer.setClearColor("#000011")
 
+// camera.lookAt(earth.position)
+// controls.target.copy(earth.position)
+
 /**
  * Animate
  */
@@ -205,6 +222,9 @@ const clock = new THREE.Clock()
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime()
+
+  // Update uniforms
+  sunMaterial.uniforms.uTime.value = elapsedTime
 
   earth.rotation.y = elapsedTime * 0.1
 
