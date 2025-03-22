@@ -1,12 +1,18 @@
 import * as THREE from "three"
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 import GUI from "lil-gui"
+
 import earthVertexShader from "./shaders/earth/vertex.glsl"
 import earthFragmentShader from "./shaders/earth/fragment.glsl"
-import atmosphereVertexShader from "./shaders/atmosphere/vertex.glsl"
-import atmosphereFragmentShader from "./shaders/atmosphere/fragment.glsl"
-import sunVertexShader from "./shaders/sun/vertex.glsl"
-import sunFragmentShader from "./shaders/sun/fragment.glsl"
+import atmosphereVertexShader from "./shaders/earthAtmosphere/vertex.glsl"
+import atmosphereFragmentShader from "./shaders/earthAtmosphere/fragment.glsl"
+
+import perlinFragment from "./shaders/perlin/fragment.glsl"
+import perlinVertex from "./shaders/perlin/vertex.glsl"
+import sunFragment from "./shaders/sun/fragment.glsl"
+import sunVertex from "./shaders/sun/vertex.glsl"
+import sunAroundFragment from "./shaders/sunAround/fragment.glsl"
+import sunAroundVertex from "./shaders/sunAround/vertex.glsl"
 
 /**
  * Base
@@ -44,14 +50,14 @@ gui.addColor(earthParameters, "atmosphereTwilightColor").onChange(() => {
 // Textures
 const earthDayTexture = textureLoader.load("./earth/day.jpg")
 earthDayTexture.colorSpace = THREE.SRGBColorSpace
-earthDayTexture.anisotropy = 8
+// earthDayTexture.anisotropy = 8
 
 const earthNightTexture = textureLoader.load("./earth/night.jpg")
 earthNightTexture.colorSpace = THREE.SRGBColorSpace
-earthNightTexture.anisotropy = 8
+// earthNightTexture.anisotropy = 8
 
 const earthSpecularCloudsTexture = textureLoader.load("./earth/specularClouds.jpg")
-earthSpecularCloudsTexture.anisotropy = 8
+// earthSpecularCloudsTexture.anisotropy = 8
 
 // Mesh
 // const earthGeometry = new THREE.SphereGeometry(1, 64, 64)
@@ -94,26 +100,72 @@ scene.add(atmosphere)
 /**
  * Sun
  */
-// cube Texture (something to do with the sun)
+// cubeTexture
+const cubeScene = new THREE.Scene()
+const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
+  format: THREE.RGBFormat,
+  generateMipmaps: true,
+  minFilter: THREE.LinearMipmapLinearFilter,
+  encoding: THREE.sRGBEncoding,
+})
+const cubeCamera = new THREE.CubeCamera(0.1, 100, cubeRenderTarget)
 
-// Coordinates
-const earthSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
-const sunDirection = new THREE.Vector3()
-
-// Sun Mesh
-const sunMaterial = new THREE.ShaderMaterial({
-  vertexShader: sunVertexShader,
-  fragmentShader: sunFragmentShader,
+const perlinMaterial = new THREE.ShaderMaterial({
+  vertexShader: perlinVertex,
+  fragmentShader: perlinFragment,
   uniforms: {
     uTime: { value: 0 },
   },
-  transparent: true,
+  // wireframe: true,
+  side: THREE.DoubleSide,
 })
-const sun = new THREE.Mesh(earth.geometry, sunMaterial)
+
+const cubeGeometry = new THREE.SphereGeometry(1, 32, 32)
+
+const cubePerlin = new THREE.Mesh(cubeGeometry, perlinMaterial)
+cubeScene.add(cubePerlin)
+
+// Sun Mesh
+const sunMaterial = new THREE.ShaderMaterial({
+  vertexShader: sunVertex,
+  fragmentShader: sunFragment,
+  uniforms: {
+    uTime: { value: 0 },
+    uCubePerlin: { value: null },
+  },
+  // wireframe: true,
+  side: THREE.DoubleSide,
+})
+
+const sunGeometry = new THREE.SphereGeometry(1, 32, 32)
+
+const sun = new THREE.Mesh(sunGeometry, sunMaterial)
 scene.add(sun)
 
+// Sun Around
+const sunAroundMaterial = new THREE.ShaderMaterial({
+  vertexShader: sunAroundVertex,
+  fragmentShader: sunAroundFragment,
+  uniforms: {
+    uTime: { value: 0 },
+    uCubePerlin: { value: null },
+  },
+  // wireframe: true,
+  side: THREE.BackSide,
+  transparent: true,
+})
+
+const sunAroundGeometry = new THREE.SphereGeometry(1, 32, 32)
+const sunAround = new THREE.Mesh(sunAroundGeometry, sunAroundMaterial)
+sunAround.scale.set(1.15, 1.15, 1.15)
+scene.add(sunAround)
+
+// Sun Coordinates to calculate sun rays direction
+const earthSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
+const sunDirection = new THREE.Vector3()
+
 // Update
-const updateSun = () => {
+const updateEarth = () => {
   // Sun direction
   sunDirection.setFromSpherical(earthSpherical)
 
@@ -125,11 +177,11 @@ const updateSun = () => {
   earthMaterial.uniforms.uSunDirection.value.copy(sunDirection)
   atmosphereMaterial.uniforms.uSunDirection.value.copy(sunDirection)
 }
-updateSun()
+updateEarth()
 
 // Tweaks
-gui.add(earthSpherical, "phi").min(0).max(Math.PI).onChange(updateSun)
-gui.add(earthSpherical, "theta").min(-Math.PI).max(Math.PI).onChange(updateSun)
+gui.add(earthSpherical, "phi").min(0).max(Math.PI).onChange(updateEarth)
+gui.add(earthSpherical, "theta").min(-Math.PI).max(Math.PI).onChange(updateEarth)
 gui.add(earthMaterial.uniforms.uClouds, "value").min(0).max(1).step(0.1).name("Clouds")
 
 /**
@@ -223,9 +275,12 @@ const clock = new THREE.Clock()
 const tick = () => {
   const elapsedTime = clock.getElapsedTime()
 
-  // Update uniforms
-  sunMaterial.uniforms.uTime.value = elapsedTime
+  cubeCamera.update(renderer, cubeScene)
+  sunMaterial.uniforms.uCubePerlin.value = cubeRenderTarget.texture
 
+  // Update material
+  sunMaterial.uniforms.uTime.value = elapsedTime
+  perlinMaterial.uniforms.uTime.value = elapsedTime
   earth.rotation.y = elapsedTime * 0.1
 
   // Update controls

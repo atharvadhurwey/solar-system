@@ -1,36 +1,49 @@
 uniform float uTime;
+uniform samplerCube uCubePerlin;
 
 varying vec2 vUv;
 varying vec3 vPosition;
+varying vec3 vNormal;
 
-#include ../includes/snoise.glsl
+varying vec3 vLayer0;
+varying vec3 vLayer1;
+varying vec3 vLayer2;
+varying vec3 eyeVector;
 
-// 6
-float fbm(vec4 p) {
-  float sum = 0.0;
-  float amp = 1.0;
-  float scale = 1.0;
-  for(int i = 0; i < 6; i++) {
-    sum += snoise(p * scale) * amp;
-    p.w += 100.0;
-    amp *= 0.9;
-    scale *= 2.0;
-  }
-  return sum;
+
+vec3 brightnessToColor(float b) {
+	b *= 0.25;
+	return (vec3(b, b * b, b * b * b * b) / 0.25) * 0.8;
 }
 
-void main() {
-  vec4 p = vec4(vPosition * 3.0, uTime * 0.015);
-  float noisy = fbm(p);
+float superSun() {
+	float sum = 0.0;
+	sum += textureCube(uCubePerlin, vLayer0).r;
+	sum += textureCube(uCubePerlin, vLayer1).r;
+	sum += textureCube(uCubePerlin, vLayer2).r;
+	sum *= 0.333;
+	return sum;
+}
 
-  vec4 p1 = vec4(vPosition * 2.0, uTime * 0.015);
-  float spots = max(snoise(p1), 0.0);
-  
-  float spotsMix = mix(1.0, spots, 0.8);
+float Fresnel(vec3 eyeVector, vec3 worldNormal) {
+  return pow(1.0 + dot(eyeVector, worldNormal), 3.0);
+}
 
-  noisy *= spotsMix;
+void main()	{
+	// Normal Fix
+	vec3 normal = normalize(vNormal);
+	if(!gl_FrontFacing) {
+		normal *= -1.0;
+	}
 
-  gl_FragColor = vec4(noisy, noisy, noisy, 1.0);
-  
-  // gl_FragColor *= vec4(spotsMix, spotsMix, spotsMix, 1.0);
-} 
+	float fres = Fresnel(eyeVector, normal);
+
+	float brightness = superSun();
+	brightness = brightness * 4.0 + 1.0;
+	brightness += fres;
+
+	vec3 col = brightnessToColor(brightness);
+	gl_FragColor = vec4(col, 1.0);
+	#include <tonemapping_fragment>
+	#include <colorspace_fragment>
+}
