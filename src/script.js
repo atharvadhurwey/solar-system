@@ -11,8 +11,10 @@ import perlinFragment from "./shaders/perlin/fragment.glsl"
 import perlinVertex from "./shaders/perlin/vertex.glsl"
 import sunFragment from "./shaders/sun/fragment.glsl"
 import sunVertex from "./shaders/sun/vertex.glsl"
-import sunAroundFragment from "./shaders/sunAround/fragment.glsl"
-import sunAroundVertex from "./shaders/sunAround/vertex.glsl"
+import sunAtmosphereFragment from "./shaders/sunAtmosphere/fragment.glsl"
+import sunAtmosphereVertex from "./shaders/sunAtmosphere/vertex.glsl"
+import sunRaysFragment from "./shaders/sunRays/fragment.glsl"
+import sunRaysVertex from "./shaders/sunRays/vertex.glsl"
 
 /**
  * Base
@@ -100,6 +102,10 @@ scene.add(atmosphere)
 /**
  * Sun
  */
+const sunGroup = new THREE.Group()
+scene.add(sunGroup)
+const basicSphereGeometry = new THREE.SphereGeometry(1, 32, 32)
+
 // cubeTexture
 const cubeScene = new THREE.Scene()
 const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
@@ -120,12 +126,10 @@ const perlinMaterial = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 })
 
-const cubeGeometry = new THREE.SphereGeometry(1, 32, 32)
-
-const cubePerlin = new THREE.Mesh(cubeGeometry, perlinMaterial)
+const cubePerlin = new THREE.Mesh(basicSphereGeometry, perlinMaterial)
 cubeScene.add(cubePerlin)
 
-// Sun Mesh
+// sun
 const sunMaterial = new THREE.ShaderMaterial({
   vertexShader: sunVertex,
   fragmentShader: sunFragment,
@@ -137,28 +141,132 @@ const sunMaterial = new THREE.ShaderMaterial({
   side: THREE.DoubleSide,
 })
 
-const sunGeometry = new THREE.SphereGeometry(1, 32, 32)
-
-const sun = new THREE.Mesh(sunGeometry, sunMaterial)
+const sun = new THREE.Mesh(basicSphereGeometry, sunMaterial)
 scene.add(sun)
+sunGroup.add(sun)
 
-// Sun Around
-const sunAroundMaterial = new THREE.ShaderMaterial({
-  vertexShader: sunAroundVertex,
-  fragmentShader: sunAroundFragment,
+// sunAtmosphere
+const sunAtmosphereMaterial = new THREE.ShaderMaterial({
+  vertexShader: sunAtmosphereVertex,
+  fragmentShader: sunAtmosphereFragment,
   uniforms: {
     uTime: { value: 0 },
-    uCubePerlin: { value: null },
   },
   // wireframe: true,
   side: THREE.BackSide,
+  depthWrite: false,
   transparent: true,
 })
 
-const sunAroundGeometry = new THREE.SphereGeometry(1, 32, 32)
-const sunAround = new THREE.Mesh(sunAroundGeometry, sunAroundMaterial)
-sunAround.scale.set(1.15, 1.15, 1.15)
-scene.add(sunAround)
+const sunAtmosphere = new THREE.Mesh(basicSphereGeometry, sunAtmosphereMaterial)
+sunAtmosphere.scale.set(1.15, 1.15, 1.15)
+scene.add(sunAtmosphere)
+sunGroup.add(sunAtmosphere)
+
+// sunRays
+const sunRaysMaterial = new THREE.ShaderMaterial({
+  vertexShader: sunRaysVertex,
+  fragmentShader: sunRaysFragment,
+  uniforms: {
+    uTime: { value: 0 },
+    uHueSpread: { value: 0.2 },
+    uHue: { value: 0.2 },
+    uLength: { value: 0.2 },
+    uWidth: { value: 0.03 },
+    uNoiseFrequency: { value: 8.0 },
+    uNoiseAmplitude: { value: 0.2 },
+    uOpacity: { value: 0.03 },
+    uAlphaBlended: { value: 0.8 },
+  },
+  // wireframe: true,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+})
+
+function createRibbons(lineCount, lineLength) {
+  // Buffers
+  const positions = new Float32Array(lineCount * lineLength * 2 * 3) // aPos
+  const initialPositions = new Float32Array(lineCount * lineLength * 2 * 3) // aPos0
+  const wireRandom = new Float32Array(lineCount * lineLength * 2 * 4) // aWireRandom
+  const indices = new Uint16Array(lineCount * (lineLength - 1) * 2 * 3) // Indices
+
+  let posIndex = 0,
+    initPosIndex = 0,
+    randomIndex = 0,
+    indexCount = 0
+
+  const c = new THREE.Vector3()
+  const h = new THREE.Vector3()
+  const tempVec = new THREE.Vector3()
+
+  for (let v = 0; v < lineCount; v++) {
+    if (Math.random() < 0.1 || v === 0) {
+      h.randomDirection().normalize()
+    }
+
+    c.copy(h)
+    tempVec.randomDirection().multiplyScalar(0.025)
+    c.add(tempVec).normalize()
+
+    const g = [Math.random(), Math.random(), Math.random(), Math.random()] // Random values for color/animation
+
+    for (let m = 0; m < lineLength; m++) {
+      for (let y = 0; y <= 1; y++) {
+        // aPos (Position in space)
+        positions[posIndex++] = (m + 0.5) / lineLength
+        positions[posIndex++] = (v + 0.5) / lineCount
+        positions[posIndex++] = 2 * y - 1
+
+        // aWireRandom (Random values for color variation)
+        for (let T = 0; T < 4; T++) {
+          wireRandom[randomIndex++] = g[T]
+        }
+
+        // aPos0 (Initial positions)
+        initialPositions[initPosIndex++] = c.x
+        initialPositions[initPosIndex++] = c.y
+        initialPositions[initPosIndex++] = c.z
+      }
+
+      // Triangle indices
+      if (m < lineLength - 1) {
+        const _ = 2 * (v * lineLength + m)
+        indices[indexCount++] = _ + 0
+        indices[indexCount++] = _ + 1
+        indices[indexCount++] = _ + 2
+        indices[indexCount++] = _ + 2
+        indices[indexCount++] = _ + 1
+        indices[indexCount++] = _ + 3
+      }
+    }
+  }
+
+  // Create geometry
+  const geometry = new THREE.BufferGeometry()
+  geometry.setAttribute("aPos", new THREE.BufferAttribute(positions, 3))
+  geometry.setAttribute("aPos0", new THREE.BufferAttribute(initialPositions, 3))
+  geometry.setAttribute("aWireRandom", new THREE.BufferAttribute(wireRandom, 4))
+  geometry.setIndex(new THREE.BufferAttribute(indices, 1))
+
+  // Optimize bounding sphere
+  geometry.computeBoundingSphere()
+  geometry.boundingSphere.radius = 1
+
+  return geometry
+}
+
+const lineCount = 4095
+const lineLength = 8
+
+// Create the ribbons geometry
+const sunRaysGeometry = createRibbons(lineCount, lineLength)
+
+const sunRays = new THREE.Mesh(sunRaysGeometry, sunRaysMaterial)
+scene.add(sunRays)
+sunGroup.add(sunRays)
+
+sunGroup.scale.set(2, 2, 2)
 
 // Sun Coordinates to calculate sun rays direction
 const earthSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
@@ -264,8 +372,8 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(sizes.pixelRatio)
 renderer.setClearColor("#000011")
 
-// camera.lookAt(earth.position)
-// controls.target.copy(earth.position)
+camera.lookAt(earth.position)
+controls.target.copy(earth.position)
 
 /**
  * Animate
@@ -282,6 +390,18 @@ const tick = () => {
   sunMaterial.uniforms.uTime.value = elapsedTime
   perlinMaterial.uniforms.uTime.value = elapsedTime
   earth.rotation.y = elapsedTime * 0.1
+
+  // Update cube reflection texture only if needed
+  cubeCamera.update(renderer, cubeScene)
+  sunMaterial.uniforms.uCubePerlin.value = cubeRenderTarget.texture
+
+  // Update time uniforms only when required
+  if (sunRaysMaterial.uniforms.uTime.value !== elapsedTime) {
+    sunMaterial.uniforms.uTime.value = elapsedTime
+    perlinMaterial.uniforms.uTime.value = elapsedTime
+    sunAtmosphereMaterial.uniforms.uTime.value = elapsedTime
+    sunRaysMaterial.uniforms.uTime.value = elapsedTime
+  }
 
   // Update controls
   controls.update()

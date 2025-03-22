@@ -9,33 +9,38 @@ varying vec3 vLayer1;
 varying vec3 vLayer2;
 varying vec3 eyeVector;
 
-mat2 rotate(float a) {
+mat2 getMatrix(float a) {
   float s = sin(a);
   float c = cos(a);
   return mat2(c, -s, s, c);
 }
 
+void setLayers(vec3 p){ 
+ float t = uTime * 0.015; 
+ mat2 m = getMatrix(t); 
+ float sum = 0.; 
+ 
+ vec3 p1 = p; 
+ p1.yz = m * p1.yz; 
+ vLayer0 = p1; 
+ 
+ p1 = p; 
+  m = getMatrix(t + 2.094); 
+ p1.zx = m * p1.zx; 
+ vLayer1 = p1; 
+ 
+ p1 = p; 
+  m = getMatrix(t + 4.188); 
+ p1.xy = m * p1.xy; 
+ vLayer2 = p1; 
+} 
+
 void main() {
 
-  vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-  eyeVector = normalize(worldPosition.xyz - cameraPosition);
+  // vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+  // eyeVector = normalize(worldPosition.xyz - cameraPosition);
 
-  float t = uTime * 0.01;
-
-  mat2 rot0 = rotate(t + 00.0);
-  vec3 p0 = position;
-  p0.yz = rot0 * p0.yz;
-  vLayer0 = p0;
-
-  mat2 rot1 = rotate(t + 10.0);
-  vec3 p1 = position;
-  p1.xz = rot1 * p1.xz;
-  vLayer1 = p1;
-
-  mat2 rot2 = rotate(t + 20.0);
-  vec3 p2 = position;
-  p2.xy = rot2 * p2.xy;
-  vLayer2 = p2;
+  setLayers(position);
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
@@ -43,4 +48,5 @@ void main() {
   vUv = uv;
   vPosition = position;
   vNormal = normal;
+  // vNormal = mat3(modelMatrix) * position;
 }

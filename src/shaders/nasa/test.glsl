@@ -119,9 +119,9 @@ precision highp float;
 varying float vRadial;
 varying vec3 vWorld;
 
-uniform float uTint;
-uniform float uBrightness;
-uniform float uFalloffColor;
+uniform float uTint; // 0.46
+uniform float uBrightness; // 1.06
+uniform float uFalloffColor; // 0.5
 
  vec3 brightnessToColor(float b)
  {
@@ -147,7 +147,7 @@ varying float vRadial;
 varying vec3 vWorld;
 
 uniform mat4 uViewProjection;
-uniform float uRadius;
+uniform float uRadius; // 0.3
 
 uniform vec3 uCamUp;
 uniform vec3 uCamPos;
@@ -381,17 +381,17 @@ void main(void) {
  
 varying vec3 vWorld; 
 uniform float uTime; 
-uniform float uSpatialFrequency; 
-uniform float uTemporalFrequency; 
-uniform float uH; 
-uniform float uContrast; 
-uniform float uFlatten; 
+uniform float uSpatialFrequency; // 6.0
+uniform float uTemporalFrequency; // 0.1
+uniform float uH; // 0.8
+uniform float uContrast; // 0.25
+uniform float uFlatten; // 0.72
  
 vec2 fbm(vec4 p) 
 { 
  vec4 q =  p; 
- float a = 1.; 
- float f = 1.; 
+ float a = 1.; // amp
+ float f = 1.; // scale
  vec2 sum = vec2(0); 
  for(int i = 0; i < OCTAVES ; i++){ 
   sum.x +=  snoise(p * f) * a; 
@@ -424,7 +424,7 @@ void main(void) {
 // perlinCube vs
 
 attribute vec3 aPos; 
-attribute vec2 aUV0; 
+attribute vec2 aUV0;
  
 varying vec3 vWorld; 
  
@@ -452,7 +452,7 @@ varying float vUVY;
 varying float vOpacity; 
 varying vec3 vColor; 
 varying vec3 vNormal; 
-uniform float uAlphaBlended; 
+uniform float uAlphaBlended;  // 0.65
  
 void main(void) { 
  float alpha = smoothstep(1., 0., abs(vUVY)); 
@@ -475,16 +475,16 @@ varying float vOpacity;
 varying vec3 vColor; 
 varying vec3 vNormal; 
  
-uniform float uWidth; 
-uniform float uAmp; 
+uniform float uWidth; //0.005
+uniform float uAmp; // 0.5
 uniform float uTime; 
-uniform float uNoiseFrequency; 
-uniform float uNoiseAmplitude; 
+uniform float uNoiseFrequency; // 4.0
+uniform float uNoiseAmplitude; //0.2
 uniform vec3 uCamPos; 
 uniform mat4 uViewProjection; 
-uniform float uOpacity; 
-uniform float uHueSpread; 
-uniform float uHue; 
+uniform float uOpacity; // 0.2
+uniform float uHueSpread; // 0.16 
+uniform float uHue; // 0
  
  #define m4  mat4( 0.00, 0.80, 0.60, -0.4, -0.80,  0.36, -0.48, -0.5, -0.60, -0.48, 0.64, 0.2, 0.40, 0.30, 0.20,0.4) 
     vec4 twistedSineNoise(vec4 q, float falloff) 
@@ -600,16 +600,16 @@ varying vec3 vColor;
 varying vec3 vNormal; 
  
  
-uniform float uHueSpread; 
-uniform float uHue; 
-uniform float uLength; 
-uniform float uWidth; 
+uniform float uHueSpread; // 0.2 
+uniform float uHue; // 0.2 
+uniform float uLength; // 0.2 
+uniform float uWidth; // 0.03 
 uniform float uTime; 
-uniform float uNoiseFrequency; 
-uniform float uNoiseAmplitude; 
+uniform float uNoiseFrequency; // 8.0 
+uniform float uNoiseAmplitude; // 0.2 
 uniform vec3 uCamPos; 
 uniform mat4 uViewProjection; 
-uniform float uOpacity; 
+uniform float uOpacity;  // 0.03 
  
  #define m4  mat4( 0.00, 0.80, 0.60, -0.4, -0.80,  0.36, -0.48, -0.5, -0.60, -0.48, 0.64, 0.2, 0.40, 0.30, 0.20,0.4) 
     vec4 twistedSineNoise(vec4 q, float falloff) 
@@ -700,12 +700,12 @@ varying vec3 vLayer2;
  
 uniform samplerCube uPerlinCube; 
  
-uniform float uFresnelPower; 
-uniform float uFresnelInfluence; 
-uniform float uTint; 
-uniform float uBase; 
-uniform float uBrightnessOffset; 
-uniform float uBrightness; 
+uniform float uFresnelPower; // 1.0
+uniform float uFresnelInfluence; // 1.2 
+uniform float uTint; // 0.26
+uniform float uBase; // 4.0
+uniform float uBrightnessOffset; // 1.0 
+uniform float uBrightness; // 0.6
 uniform vec3 uCamPos; 
  
  vec3 brightnessToColor(float b) 
@@ -767,12 +767,12 @@ uniform mat4 uModel;
 uniform mat4 uViewProjection; 
 uniform float uTime; 
  
-   mat2 getMatrix(float a) 
-   { 
-    float s = sin(a); 
-    float c = cos(a); 
-    return mat2(c, -s, s, c); 
-   } 
+mat2 getMatrix(float a) 
+{ 
+  float s = sin(a); 
+  float c = cos(a); 
+  return mat2(c, -s, s, c); 
+} 
  
  
 void setLayers(vec3 p){ 
