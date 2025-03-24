@@ -17,7 +17,6 @@ export default class Earth {
     this.camera = this.experience.camera
 
     // Resource
-    this.resource = this.resources.items.foxModel
     this.earthDayTexture = this.resources.items.earthDayTexture
     this.earthDayTexture.colorSpace = THREE.SRGBColorSpace
     this.earthNightTexture = this.resources.items.earthNightTexture
@@ -37,7 +36,7 @@ export default class Earth {
     this.sunDirection = new THREE.Vector3()
 
     this.setEarth()
-    this.setEarthAtmosphere()
+    this.setAtmosphere()
     this.updateEarth()
   }
 
@@ -61,7 +60,7 @@ export default class Earth {
     this.scene.add(this.earth)
   }
 
-  setEarthAtmosphere() {
+  setAtmosphere() {
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
@@ -91,8 +90,10 @@ export default class Earth {
     this.earthMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
     this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
 
+    // move camera to earth
     // this.camera.instance.lookAt(this.earth.position)
     // this.camera.controls.target.copy(this.earth.position)
+    // this.camera.instance.position.set(-15.460402852453337, 0.06140296527825393, -45.41142989593863)
   }
 
   update() {
