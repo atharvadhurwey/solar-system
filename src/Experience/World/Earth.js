@@ -8,7 +8,7 @@ import atmosphereVertexShader from "../../shaders/earthAtmosphere/vertex.glsl"
 import atmosphereFragmentShader from "../../shaders/earthAtmosphere/fragment.glsl"
 
 export default class Earth {
-  constructor() {
+  constructor(_options) {
     this.experience = new Experience()
     this.scene = this.experience.scene
     this.resources = this.experience.resources
@@ -56,6 +56,7 @@ export default class Earth {
     // Sun Coordinates to calculate sun rays direction
     this.earthSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
     this.sunDirection = new THREE.Vector3()
+    this.distanceFromSun = _options.distanceFromSun
 
     this.setEarth()
     this.setAtmosphere()
@@ -68,7 +69,6 @@ export default class Earth {
       vertexShader: earthVertexShader,
       fragmentShader: earthFragmentShader,
       uniforms: {
-        uTime: { value: 0 },
         uDayTexture: new THREE.Uniform(this.earthDayTexture),
         uNightTexture: new THREE.Uniform(this.earthNightTexture),
         uSpecularCloudsTexture: new THREE.Uniform(this.earthSpecularCloudsTexture),
@@ -105,7 +105,7 @@ export default class Earth {
     this.sunDirection.setFromSpherical(this.earthSpherical)
 
     // Debug
-    this.earth.position.copy(this.sunDirection).multiplyScalar(-50)
+    this.earth.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
     this.earthAtmosphere.position.copy(this.earth.position)
 
     // Uniforms
@@ -115,7 +115,7 @@ export default class Earth {
     // move camera to earth
     // this.camera.instance.lookAt(this.earth.position)
     // this.camera.controls.target.copy(this.earth.position)
-    // this.camera.instance.position.set(-15.460402852453337, 0.06140296527825393, -45.41142989593863)
+    // this.camera.instance.position.set(-2.698808693333728, 0.02767292946658982, -15.267088775136951)
   }
 
   update() {

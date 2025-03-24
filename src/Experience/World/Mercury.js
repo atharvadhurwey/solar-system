@@ -8,7 +8,7 @@ import mercuryFragmentShader from "../../shaders/mercury/surface/fragment.glsl"
 // import atmosphereFragmentShader from "../../shaders/mercury/atmosphere/fragment.glsl"
 
 export default class Mercury {
-  constructor() {
+  constructor(_options) {
     this.experience = new Experience()
     this.scene = this.experience.scene
     this.resources = this.experience.resources
@@ -52,9 +52,9 @@ export default class Mercury {
     // Sun Coordinates to calculate sun rays direction
     this.mercurySpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
     this.sunDirection = new THREE.Vector3()
+    this.distanceFromSun = _options.distanceFromSun
 
     this.setmercury()
-    // this.setAtmosphere()
     this.updatemercury()
   }
 
@@ -64,7 +64,6 @@ export default class Mercury {
       vertexShader: mercuryVertexShader,
       fragmentShader: mercuryFragmentShader,
       uniforms: {
-        uTime: { value: 0 },
         uSurfaceTexture: new THREE.Uniform(this.mercuryTexture),
         uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.mercuryParameters.atmosphereColor)),
@@ -75,30 +74,12 @@ export default class Mercury {
     this.scene.add(this.mercury)
   }
 
-  setAtmosphere() {
-    this.atmosphereMaterial = new THREE.ShaderMaterial({
-      vertexShader: atmosphereVertexShader,
-      fragmentShader: atmosphereFragmentShader,
-      uniforms: {
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
-        uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.mercuryParameters.atmosphereColor)),
-        uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.mercuryParameters.atmosphereTwilightColor)),
-      },
-      side: THREE.BackSide,
-      transparent: true,
-    })
-    this.mercuryAtmosphere = new THREE.Mesh(this.mercuryGeometry, this.atmosphereMaterial)
-    this.mercuryAtmosphere.scale.set(1.04, 1.04, 1.04)
-    this.mercuryAtmosphere.position.copy(this.mercury.position)
-    this.scene.add(this.mercuryAtmosphere)
-  }
-
   updatemercury() {
     // Sun direction
     this.sunDirection.setFromSpherical(this.mercurySpherical)
 
     this.mercury.position.copy(this.sunDirection)
-    this.mercury.position.copy(this.sunDirection).multiplyScalar(-10)
+    this.mercury.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
 
     // Uniforms
     this.mercuryMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
@@ -106,11 +87,10 @@ export default class Mercury {
     // move camera to mercury
     // this.camera.instance.lookAt(this.mercury.position)
     // this.camera.controls.target.copy(this.mercury.position)
-    // this.camera.instance.position.set(-1.3019516756442808, 0.32353354497371, -5.289484556401279)
+    // this.camera.instance.position.set(1.8301480476870324, 0.05821247167840077, -6.884785366823811)
   }
 
   update() {
     this.mercury.rotation.y = this.time.elapsed * 0.1
-    this.mercuryMaterial.uniforms.uTime.value = this.time.elapsed
   }
 }

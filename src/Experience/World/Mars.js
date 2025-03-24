@@ -8,7 +8,7 @@ import atmosphereVertexShader from "../../shaders/mars/atmosphere/vertex.glsl"
 import atmosphereFragmentShader from "../../shaders/mars/atmosphere/fragment.glsl"
 
 export default class Mars {
-  constructor() {
+  constructor(_options) {
     this.experience = new Experience()
     this.scene = this.experience.scene
     this.resources = this.experience.resources
@@ -52,6 +52,7 @@ export default class Mars {
     // Sun Coordinates to calculate sun rays direction
     this.marsSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
     this.sunDirection = new THREE.Vector3()
+    this.distanceFromSun = _options.distanceFromSun
 
     this.setMars()
     this.setAtmosphere()
@@ -64,7 +65,6 @@ export default class Mars {
       vertexShader: marsVertexShader,
       fragmentShader: marsFragmentShader,
       uniforms: {
-        uTime: { value: 0 },
         uSurfaceTexture: new THREE.Uniform(this.marsTexture),
         uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.marsParameters.atmosphereColor)),
@@ -98,7 +98,7 @@ export default class Mars {
     this.sunDirection.setFromSpherical(this.marsSpherical)
 
     // Debug
-    this.mars.position.copy(this.sunDirection).multiplyScalar(-25)
+    this.mars.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
     this.marsAtmosphere.position.copy(this.mars.position)
 
     // Uniforms
@@ -108,11 +108,10 @@ export default class Mars {
     // move camera to mars
     // this.camera.instance.lookAt(this.mars.position)
     // this.camera.controls.target.copy(this.mars.position)
-    // this.camera.instance.position.set(-6.929043616737352, 0.4339641627957663, -25.591861446366376)
+    // this.camera.instance.position.set(-5.532431038560505, 0.8201773355802967, -20.537371209218357)
   }
 
   update() {
     this.mars.rotation.y = this.time.elapsed * 0.1
-    this.marsMaterial.uniforms.uTime.value = this.time.elapsed
   }
 }

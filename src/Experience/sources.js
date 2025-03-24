@@ -1,5 +1,20 @@
 export default [
   {
+    name: "mercuryTexture",
+    type: "texture",
+    path: "textures/mercury/mercury.webp",
+  },
+  {
+    name: "venusSurfaceTexture",
+    type: "texture",
+    path: "textures/venus/venusSurface.webp",
+  },
+  {
+    name: "venusAtmosphereTexture",
+    type: "texture",
+    path: "textures/venus/venusAtmosphere.webp",
+  },
+  {
     name: "earthDayTexture",
     type: "texture",
     path: "textures/earth/day.webp",
@@ -18,10 +33,5 @@ export default [
     name: "marsTexture",
     type: "texture",
     path: "textures/mars/mars.webp",
-  },
-  {
-    name: "mercuryTexture",
-    type: "texture",
-    path: "textures/mercury/mercury.webp",
   },
 ]
