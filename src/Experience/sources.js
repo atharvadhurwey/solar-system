@@ -34,4 +34,9 @@ export default [
     type: "texture",
     path: "textures/mars/mars.webp",
   },
+  {
+    name: "jupiterTexture",
+    type: "texture",
+    path: "textures/jupiter/jupiter.webp",
+  },
 ]

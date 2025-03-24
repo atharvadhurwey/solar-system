@@ -27,7 +27,7 @@ export default class Mars {
 
     // Mars Parameters
     this.marsParameters = {
-      atmosphereColor: "#ff6600",
+      atmosphereColor: "#c1440e",
       atmosphereTwilightColor: "#009999",
     }
 
@@ -73,6 +73,7 @@ export default class Mars {
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.marsParameters.atmosphereTwilightColor)),
       },
     })
+    this.marsMaterial.toneMapped = false
     this.mars = new THREE.Mesh(this.marsGeometry, this.marsMaterial)
     this.scene.add(this.mars)
   }
@@ -89,6 +90,7 @@ export default class Mars {
       side: THREE.BackSide,
       transparent: true,
     })
+    this.atmosphereMaterial.toneMapped = false
     this.marsAtmosphere = new THREE.Mesh(this.marsGeometry, this.atmosphereMaterial)
     this.marsAtmosphere.scale.set(1.04, 1.04, 1.04)
     this.marsAtmosphere.position.copy(this.mars.position)

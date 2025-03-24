@@ -51,6 +51,16 @@ export default class Earth {
           this.earthMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.earthParameters.atmosphereTwilightColor)
         })
 
+      this.debugFolder
+        .add(this.earthParameters, "clouds")
+        .min(0)
+        .max(1)
+        .step(0.01)
+        .name("clouds")
+        .onChange(() => {
+          this.earthMaterial.uniforms.uClouds.value = this.earthParameters.clouds
+        })
+
       this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to earth")
     }
 

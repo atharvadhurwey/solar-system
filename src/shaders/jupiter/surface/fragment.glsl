@@ -19,11 +19,6 @@ void main()
     // Day / night color
     float dayMix = smoothstep(-0.25, 0.5, sunOrientation);
     vec3 dayColor = texture(uSurfaceTexture, vUv).rgb;
-
-    // Desaturate the dayColor slightly by blending it with grayscale
-    float avg = dot(dayColor, vec3(0.333)); // Convert to grayscale intensity
-    dayColor = mix(dayColor, vec3(avg), 0.2); // 40% desaturation
-
     color = mix(vec3(0.0, 0.0, 0.0), dayColor, dayMix);
 
     // Fresnel
@@ -33,18 +28,14 @@ void main()
     // Atmosphere
     float atmosphereDayMix = smoothstep(-0.5, 1.0, sunOrientation);
     vec3 atmosphereColor = mix(uAtmosphereTwilightColor, uAtmosphereColor, atmosphereDayMix);
-
-    // Reduce red influence by slightly shifting towards a more neutral tone
-    atmosphereColor = mix(atmosphereColor, vec3(0.8, 0.7, 0.6), 0.3); // Blending towards a dusty color
-
     color = mix(color, atmosphereColor, fresnel * atmosphereDayMix); 
 
     // Specular
     vec3 reflection = reflect(-uSunDirection, normal);
     float specular = - dot(reflection, viewDirection);
-    specular = pow(max(specular, 0.0), 16.0);
+    specular = pow(max(specular, 0.0), 32.0);
 
-    specular *= 0.1;
+    specular *= 0.2;
 
     vec3 specularColor = mix(vec3(1.0), atmosphereColor, fresnel);
     color += specular * specularColor;

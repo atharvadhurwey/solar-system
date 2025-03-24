@@ -4,6 +4,7 @@ import Mars from "./Mars.js"
 import Mercury from "./Mercury.js"
 import Sun from "./Sun.js"
 import Venus from "./Venus.js"
+import Jupiter from "./Jupiter.js"
 
 export default class World {
   constructor() {
@@ -19,6 +20,7 @@ export default class World {
       this.venus = new Venus({ distanceFromSun: 14 })
       this.earth = new Earth({ distanceFromSun: 21 })
       this.mars = new Mars({ distanceFromSun: 28 })
+      this.jupiter = new Jupiter({ distanceFromSun: 35 })
     })
   }
 
@@ -28,5 +30,6 @@ export default class World {
     if (this.venus) this.venus.update()
     if (this.earth) this.earth.update()
     if (this.mars) this.mars.update()
+    if (this.jupiter) this.jupiter.update()
   }
 }

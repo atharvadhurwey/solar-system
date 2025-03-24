@@ -129,7 +129,8 @@ export default class Venus {
     // move camera to venus
     this.camera.instance.lookAt(this.venus.position)
     this.camera.controls.target.copy(this.venus.position)
-    this.camera.instance.position.set(-0.6711358866046666, 0.0, -11.474441548046544)
+
+    this.camera.instance.position.set(-2.7293515826281833, 0.0, -15.143553872497971)
   }
 
   update() {
