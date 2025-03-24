@@ -19,4 +19,9 @@ export default [
     type: "texture",
     path: "textures/mars/mars.webp",
   },
+  {
+    name: "mercuryTexture",
+    type: "texture",
+    path: "textures/mercury/mercury.webp",
+  },
 ]

@@ -16,6 +16,11 @@ export default class Earth {
     this.debug = this.experience.debug
     this.camera = this.experience.camera
 
+    // Debug
+    if (this.debug.active) {
+      this.debugFolder = this.debug.ui.addFolder("earth")
+    }
+
     // Resource
     this.earthDayTexture = this.resources.items.earthDayTexture
     this.earthDayTexture.colorSpace = THREE.SRGBColorSpace
@@ -28,6 +33,23 @@ export default class Earth {
       atmosphereDayColor: "#00aaff",
       atmosphereTwilightColor: "#ff6600",
       clouds: 0.8,
+    }
+
+    // debug
+    if (this.debug.active) {
+      this.debugFolder
+        .addColor(this.earthParameters, "atmosphereDayColor")
+        .name("atmosphereDayColor")
+        .onChange(() => {
+          this.earthMaterial.uniforms.uAtmosphereDayColor.value.set(this.earthParameters.atmosphereDayColor)
+        })
+
+      this.debugFolder
+        .addColor(this.earthParameters, "atmosphereTwilightColor")
+        .name("atmosphereTwilightColor")
+        .onChange(() => {
+          this.earthMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.earthParameters.atmosphereTwilightColor)
+        })
     }
 
     // TEMP

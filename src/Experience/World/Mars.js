@@ -37,7 +37,7 @@ export default class Mars {
         .addColor(this.marsParameters, "atmosphereColor")
         .name("atmosphereColor")
         .onChange(() => {
-          this.marsMaterial.uniforms.uAtmosphereDayColor.value.set(this.marsParameters.atmosphereColor)
+          this.marsMaterial.uniforms.uAtmosphereColor.value.set(this.marsParameters.atmosphereColor)
         })
 
       this.debugFolder
@@ -106,9 +106,9 @@ export default class Mars {
     this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
 
     // move camera to mars
-    this.camera.instance.lookAt(this.mars.position)
-    this.camera.controls.target.copy(this.mars.position)
-    this.camera.instance.position.set(-6.929043616737352, 0.4339641627957663, -25.591861446366376)
+    // this.camera.instance.lookAt(this.mars.position)
+    // this.camera.controls.target.copy(this.mars.position)
+    // this.camera.instance.position.set(-6.929043616737352, 0.4339641627957663, -25.591861446366376)
   }
 
   update() {
