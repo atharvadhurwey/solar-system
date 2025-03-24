@@ -46,6 +46,8 @@ export default class Mars {
         .onChange(() => {
           this.marsMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.marsParameters.atmosphereTwilightColor)
         })
+
+      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to mars")
     }
 
     // TEMP
@@ -104,11 +106,14 @@ export default class Mars {
     // Uniforms
     this.marsMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
     this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
+  }
 
+  updateCamera() {
     // move camera to mars
-    // this.camera.instance.lookAt(this.mars.position)
-    // this.camera.controls.target.copy(this.mars.position)
-    // this.camera.instance.position.set(-5.532431038560505, 0.8201773355802967, -20.537371209218357)
+    this.camera.instance.lookAt(this.mars.position)
+    this.camera.controls.target.copy(this.mars.position)
+
+    this.camera.instance.position.set(-9.164453521070085, 0.0, -27.26908420201103)
   }
 
   update() {

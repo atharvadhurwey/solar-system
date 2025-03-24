@@ -46,6 +46,7 @@ export default class Mercury {
         .onChange(() => {
           this.mercuryMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.mercuryParameters.atmosphereTwilightColor)
         })
+      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to mercury")
     }
 
     // TEMP
@@ -83,11 +84,13 @@ export default class Mercury {
 
     // Uniforms
     this.mercuryMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
+  }
 
+  updateCamera() {
     // move camera to mercury
-    // this.camera.instance.lookAt(this.mercury.position)
-    // this.camera.controls.target.copy(this.mercury.position)
-    // this.camera.instance.position.set(1.8301480476870324, 0.05821247167840077, -6.884785366823811)
+    this.camera.instance.lookAt(this.mercury.position)
+    this.camera.controls.target.copy(this.mercury.position)
+    this.camera.instance.position.set(1.8301480476870324, 0.0, -6.884785366823811)
   }
 
   update() {

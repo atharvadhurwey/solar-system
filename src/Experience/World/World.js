@@ -15,10 +15,10 @@ export default class World {
     this.resources.on("ready", () => {
       // Setup
       this.sun = new Sun()
-      this.mercury = new Mercury({ distanceFromSun: 5 })
-      this.venus = new Venus({ distanceFromSun: 10 })
-      this.earth = new Earth({ distanceFromSun: 15 })
-      this.mars = new Mars({ distanceFromSun: 20 })
+      this.mercury = new Mercury({ distanceFromSun: 7 })
+      this.venus = new Venus({ distanceFromSun: 14 })
+      this.earth = new Earth({ distanceFromSun: 21 })
+      this.mars = new Mars({ distanceFromSun: 28 })
     })
   }
 

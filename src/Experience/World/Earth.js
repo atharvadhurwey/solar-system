@@ -50,6 +50,8 @@ export default class Earth {
         .onChange(() => {
           this.earthMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.earthParameters.atmosphereTwilightColor)
         })
+
+      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to earth")
     }
 
     // TEMP
@@ -111,11 +113,14 @@ export default class Earth {
     // Uniforms
     this.earthMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
     this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
+  }
 
+  updateCamera() {
     // move camera to earth
-    // this.camera.instance.lookAt(this.earth.position)
-    // this.camera.controls.target.copy(this.earth.position)
-    // this.camera.instance.position.set(-2.698808693333728, 0.02767292946658982, -15.267088775136951)
+    this.camera.instance.lookAt(this.earth.position)
+    this.camera.controls.target.copy(this.earth.position)
+
+    this.camera.instance.position.set(-5.310743439248728, 0.0, -20.131895985328836)
   }
 
   update() {

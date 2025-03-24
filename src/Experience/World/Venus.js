@@ -60,6 +60,7 @@ export default class Venus {
         .onChange(() => {
           this.venusMaterial.uniforms.uCloudsSpeed.value = this.venusParameters.cloudsSpeed
         })
+      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to venus")
     }
 
     // TEMP
@@ -122,11 +123,13 @@ export default class Venus {
     // Uniforms
     this.venusMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
     this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
+  }
 
+  updateCamera() {
     // move camera to venus
-    // this.camera.instance.lookAt(this.venus.position)
-    // this.camera.controls.target.copy(this.venus.position)
-    // this.camera.instance.position.set(-0.6711358866046666, 0.4156811576293314, -11.474441548046544)
+    this.camera.instance.lookAt(this.venus.position)
+    this.camera.controls.target.copy(this.venus.position)
+    this.camera.instance.position.set(-0.6711358866046666, 0.0, -11.474441548046544)
   }
 
   update() {
