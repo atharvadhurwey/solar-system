@@ -1,11 +1,11 @@
 import * as THREE from "three"
 import Experience from "../Experience.js"
 
-import earthVertexShader from "../../shaders/earth/vertex.glsl"
-import earthFragmentShader from "../../shaders/earth/fragment.glsl"
+import earthVertexShader from "../../shaders/earth/surface/vertex.glsl"
+import earthFragmentShader from "../../shaders/earth/surface/fragment.glsl"
 
-import atmosphereVertexShader from "../../shaders/earthAtmosphere/vertex.glsl"
-import atmosphereFragmentShader from "../../shaders/earthAtmosphere/fragment.glsl"
+import atmosphereVertexShader from "../../shaders/earth/atmosphere/vertex.glsl"
+import atmosphereFragmentShader from "../../shaders/earth/atmosphere/fragment.glsl"
 
 export default class Earth {
   constructor(_options) {

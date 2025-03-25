@@ -4,14 +4,14 @@ import Experience from "../Experience.js"
 import perlinVertex from "../../shaders/perlin/vertex.glsl"
 import perlinFragment from "../../shaders/perlin/fragment.glsl"
 
-import sunVertex from "../../shaders/sun/vertex.glsl"
-import sunFragment from "../../shaders/sun/fragment.glsl"
+import sunVertex from "../../shaders/sun/surface/vertex.glsl"
+import sunFragment from "../../shaders/sun/surface/fragment.glsl"
 
-import sunAtmosphereVertex from "../../shaders/sunAtmosphere/vertex.glsl"
-import sunAtmosphereFragment from "../../shaders/sunAtmosphere/fragment.glsl"
+import sunAtmosphereVertex from "../../shaders/sun/atmosphere/vertex.glsl"
+import sunAtmosphereFragment from "../../shaders/sun/atmosphere/fragment.glsl"
 
-import sunRaysVertex from "../../shaders/sunRays/vertex.glsl"
-import sunRaysFragment from "../../shaders/sunRays/fragment.glsl"
+import sunRaysVertex from "../../shaders/sun/rays/vertex.glsl"
+import sunRaysFragment from "../../shaders/sun/rays/fragment.glsl"
 
 export default class Sun {
   constructor() {
