@@ -141,7 +141,7 @@ export default class Saturn {
     this.camera.instance.lookAt(this.saturn.position)
     this.camera.controls.target.copy(this.saturn.position)
 
-    this.camera.instance.position.set(-19.276925469666406, 0.6298954560075182, -45.172164152584955)
+    this.camera.instance.position.set(-15.727900354744083, 0.711429269023784, -39.14932790557243)
   }
 
   update() {

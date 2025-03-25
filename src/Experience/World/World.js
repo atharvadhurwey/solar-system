@@ -6,6 +6,8 @@ import Sun from "./Sun.js"
 import Venus from "./Venus.js"
 import Jupiter from "./Jupiter.js"
 import Saturn from "./Saturn.js"
+import Uranus from "./Uranus.js"
+import Neptune from "./Neptune.js"
 
 export default class World {
   constructor() {
@@ -23,6 +25,8 @@ export default class World {
       this.mars = new Mars({ distanceFromSun: 28 })
       this.jupiter = new Jupiter({ distanceFromSun: 35 })
       this.saturn = new Saturn({ distanceFromSun: 42 })
+      this.uranus = new Uranus({ distanceFromSun: 49 })
+      this.neptune = new Neptune({ distanceFromSun: 56 })
     })
   }
 
@@ -34,5 +38,7 @@ export default class World {
     if (this.mars) this.mars.update()
     if (this.jupiter) this.jupiter.update()
     if (this.saturn) this.saturn.update()
+    if (this.uranus) this.uranus.update()
+    if (this.neptune) this.neptune.update()
   }
 }
