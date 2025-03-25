@@ -39,4 +39,14 @@ export default [
     type: "texture",
     path: "textures/jupiter/jupiter.webp",
   },
+  {
+    name: "saturnSurfaceTexture",
+    type: "texture",
+    path: "textures/saturn/saturnSurface.webp",
+  },
+  {
+    name: "saturnRingTexture",
+    type: "texture",
+    path: "textures/saturn/saturnRing.png",
+  },
 ]
