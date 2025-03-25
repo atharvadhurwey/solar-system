@@ -9,6 +9,7 @@ import World from "./World/World.js"
 import Resources from "./Utils/Resources.js"
 
 import sources from "./sources.js"
+import CompileCamera from "./CompileCamera.js"
 
 let instance = null
 
@@ -33,6 +34,7 @@ export default class Experience {
     this.scene = new THREE.Scene()
     this.resources = new Resources(sources)
     this.camera = new Camera()
+    this.compileCamera = new CompileCamera()
     this.renderer = new Renderer()
     this.world = new World()
 
@@ -45,6 +47,11 @@ export default class Experience {
     this.time.on("tick", () => {
       this.update()
     })
+
+    // force changing camera position multiple times to compile textures
+    this.compileTimes = 0
+    this.compileLimit = 3
+    this.isCompiled = false
   }
 
   resize() {
@@ -52,10 +59,32 @@ export default class Experience {
     this.renderer.resize()
   }
 
+  preCompile() {
+    // Create an off-screen render target
+    const renderTarget = new THREE.WebGLRenderTarget(this.sizes.width, this.sizes.height)
+
+    // Render to the off-screen buffer instead of the canvas
+    this.renderer.instance.setRenderTarget(renderTarget)
+    this.renderer.instance.render(this.scene, this.compileCamera.instance)
+    this.renderer.instance.setRenderTarget(null) // Reset to canvas
+
+    this.compileTimes++
+    if (this.compileTimes === this.compileLimit) {
+      this.compileCamera.controls.dispose()
+      this.compileCamera.instance = null // idk if this line is necessary but it's worth a shot
+      this.isCompiled = true
+    }
+  }
+
   update() {
-    this.camera.update()
-    this.world.update()
-    this.renderer.update()
+    // Compile textures using a different camera
+    if (this.compileTimes < this.compileLimit) {
+      this.preCompile()
+    } else {
+      this.camera.update()
+      this.renderer.update()
+      this.world.update()
+    }
   }
 
   destroy() {

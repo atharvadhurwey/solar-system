@@ -14,6 +14,8 @@ export default class World {
     this.experience = new Experience()
     this.scene = this.experience.scene
     this.resources = this.experience.resources
+    this.camera = this.experience.camera.instance
+    this.renderer = this.experience.renderer.instance
 
     // Wait for resources
     this.resources.on("ready", () => {
