@@ -17,15 +17,18 @@ export default class World {
     // Wait for resources
     this.resources.on("ready", () => {
       // Setup
+      const timeScale = 100000
+
+      // Setup
       this.sun = new Sun()
-      this.mercury = new Mercury({ distanceFromSun: 7 })
-      this.venus = new Venus({ distanceFromSun: 14 })
-      this.earth = new Earth({ distanceFromSun: 21 })
-      this.mars = new Mars({ distanceFromSun: 28 })
-      this.jupiter = new Jupiter({ distanceFromSun: 35 })
-      this.saturn = new Saturn({ distanceFromSun: 42 })
-      this.uranus = new Uranus({ distanceFromSun: 49 })
-      this.neptune = new Neptune({ distanceFromSun: 56 })
+      this.mercury = new Mercury({ distanceFromSun: 60.5, scale: 1, timeScale })
+      // this.venus = new Venus({ distanceFromSun: 14 })
+      // this.earth = new Earth({ distanceFromSun: 21 })
+      // this.mars = new Mars({ distanceFromSun: 28 })
+      // this.jupiter = new Jupiter({ distanceFromSun: 35 })
+      // this.saturn = new Saturn({ distanceFromSun: 42 })
+      // this.uranus = new Uranus({ distanceFromSun: 49 })
+      // this.neptune = new Neptune({ distanceFromSun: 56 })
     })
   }
 

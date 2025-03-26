@@ -1,5 +1,5 @@
 uniform sampler2D uSurfaceTexture;
-uniform vec3 uSunDirection;
+uniform vec3 uPlanetPosition;
 
 varying vec2 vUv;
 varying vec3 vNormal;
@@ -7,6 +7,7 @@ varying vec3 vPosition;
 
 void main()
 {
+    vec3 uSunDirection = normalize(-uPlanetPosition);
     vec3 viewDirection = normalize(vPosition - cameraPosition);
     vec3 normal = normalize(vNormal);
     vec3 color = vec3(0.0);
