@@ -50,9 +50,14 @@ export default class Resources extends EventEmitter {
 
     // Preload textures to avoid frame drops due to decode and GPU upload overhead
     // Handle non sRGB textures
+    // Handle textures that need to be repeated
     // (took one night sleep to fix this fps drop issue)
     if (!source.nonSRGB) {
       this.items[source.name].colorSpace = THREE.SRGBColorSpace
+    }
+    if (source.repeat) {
+      this.items[source.name].wrapS = THREE.RepeatWrapping
+      this.items[source.name].wrapT = THREE.RepeatWrapping
     }
     this.renderer.initTexture(this.items[source.name])
 

@@ -23,10 +23,7 @@ export default class Venus {
 
     // Resource
     this.venusSurfaceTexture = this.resources.items.venusSurfaceTexture
-    this.venusSurfaceTexture.colorSpace = THREE.SRGBColorSpace
     this.venusAtmosphereTexture = this.resources.items.venusAtmosphereTexture
-    this.venusAtmosphereTexture.wrapS = THREE.RepeatWrapping
-    this.venusAtmosphereTexture.wrapT = THREE.RepeatWrapping
 
     // venus Parameters
     this.venusParameters = {

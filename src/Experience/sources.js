@@ -13,6 +13,7 @@ export default [
     name: "venusAtmosphereTexture",
     type: "texture",
     path: "textures/venus/venusAtmosphere.webp",
+    repeat: true,
   },
   {
     name: "earthDayTexture",
