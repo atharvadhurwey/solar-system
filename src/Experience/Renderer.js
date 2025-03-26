@@ -8,7 +8,6 @@ export default class Renderer {
     this.sizes = this.experience.sizes
     this.scene = this.experience.scene
     this.camera = this.experience.camera
-    this.compileCamera = this.experience.compileCamera
 
     this.setInstance()
   }

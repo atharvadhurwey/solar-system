@@ -14,12 +14,17 @@ export default class World {
     this.experience = new Experience()
     this.scene = this.experience.scene
     this.resources = this.experience.resources
-    // this.compileCamera = this.experience.compileCamera.instance
     this.camera = this.experience.camera.instance
     this.renderer = this.experience.renderer.instance
 
     // Wait for resources
     this.resources.on("ready", () => {
+      // Precompile textures to avoid frame drops due to deode and GPU upload overhead
+      // (took one night sleep to fix this fps drop issue)
+      for (const textures in this.resources.items) {
+        this.renderer.initTexture(this.resources.items[textures])
+      }
+
       // Setup
       this.sun = new Sun()
       this.mercury = new Mercury({ distanceFromSun: 7 })
@@ -30,10 +35,6 @@ export default class World {
       this.saturn = new Saturn({ distanceFromSun: 42 })
       this.uranus = new Uranus({ distanceFromSun: 49 })
       this.neptune = new Neptune({ distanceFromSun: 56 })
-
-      // setTimeout(() => {
-      //   this.renderer.compile(this.scene, this.compileCamera)
-      // }, 1000)
     })
   }
 
