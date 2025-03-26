@@ -23,7 +23,6 @@ export default class Jupiter {
 
     // Resource
     this.jupiterTexture = this.resources.items.jupiterTexture
-    this.jupiterTexture.colorSpace = THREE.SRGBColorSpace
 
     // jupiter Parameters
     this.jupiterParameters = {

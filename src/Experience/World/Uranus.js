@@ -26,9 +26,7 @@ export default class Uranus {
 
     // Resource
     this.uranusTexture = this.resources.items.uranusTexture
-    this.uranusTexture.colorSpace = THREE.SRGBColorSpace
     this.uranusRingTexture = this.resources.items.uranusRingTexture
-    this.uranusRingTexture.colorSpace = THREE.SRGBColorSpace
 
     // uranus Parameters
     this.uranusParameters = {

@@ -26,8 +26,6 @@ export default class Saturn {
 
     // Resource
     this.saturnSurfaceTexture = this.resources.items.saturnSurfaceTexture
-    this.saturnSurfaceTexture.colorSpace = THREE.SRGBColorSpace
-
     this.saturnRingsTexture = this.resources.items.saturnRingTexture
 
     // saturn Parameters

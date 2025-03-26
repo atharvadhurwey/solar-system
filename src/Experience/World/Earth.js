@@ -23,9 +23,7 @@ export default class Earth {
 
     // Resource
     this.earthDayTexture = this.resources.items.earthDayTexture
-    this.earthDayTexture.colorSpace = THREE.SRGBColorSpace
     this.earthNightTexture = this.resources.items.earthNightTexture
-    this.earthNightTexture.colorSpace = THREE.SRGBColorSpace
     this.earthSpecularCloudsTexture = this.resources.items.earthSpecularCloudsTexture
 
     // Earth Parameters

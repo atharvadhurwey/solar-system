@@ -12,19 +12,10 @@ import Neptune from "./Neptune.js"
 export default class World {
   constructor() {
     this.experience = new Experience()
-    this.scene = this.experience.scene
     this.resources = this.experience.resources
-    this.camera = this.experience.camera.instance
-    this.renderer = this.experience.renderer.instance
 
     // Wait for resources
     this.resources.on("ready", () => {
-      // Precompile textures to avoid frame drops due to deode and GPU upload overhead
-      // (took one night sleep to fix this fps drop issue)
-      for (const textures in this.resources.items) {
-        this.renderer.initTexture(this.resources.items[textures])
-      }
-
       // Setup
       this.sun = new Sun()
       this.mercury = new Mercury({ distanceFromSun: 7 })

@@ -28,6 +28,7 @@ export default [
     name: "earthSpecularCloudsTexture",
     type: "texture",
     path: "textures/earth/specularClouds.webp",
+    nonSRGB: true,
   },
   {
     name: "marsTexture",

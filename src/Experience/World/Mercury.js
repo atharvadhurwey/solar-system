@@ -23,7 +23,6 @@ export default class Mercury {
 
     // Resource
     this.mercuryTexture = this.resources.items.mercuryTexture
-    this.mercuryTexture.colorSpace = THREE.SRGBColorSpace
 
     // mercury Parameters
     this.mercuryParameters = {

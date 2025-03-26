@@ -23,7 +23,6 @@ export default class Mars {
 
     // Resource
     this.marsTexture = this.resources.items.marsTexture
-    this.marsTexture.colorSpace = THREE.SRGBColorSpace
 
     // Mars Parameters
     this.marsParameters = {

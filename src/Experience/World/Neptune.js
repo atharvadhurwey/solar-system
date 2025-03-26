@@ -23,7 +23,6 @@ export default class Neptune {
 
     // Resource
     this.neptuneTexture = this.resources.items.neptuneTexture
-    this.neptuneTexture.colorSpace = THREE.SRGBColorSpace
 
     // neptune Parameters
     this.neptuneParameters = {

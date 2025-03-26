@@ -1,11 +1,14 @@
 import * as THREE from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import EventEmitter from "./EventEmitter.js"
+import Experience from "../Experience.js"
 
 export default class Resources extends EventEmitter {
   constructor(sources) {
     super()
 
+    this.experience = new Experience()
+    this.renderer = this.experience.renderer.instance
     this.sources = sources
 
     this.items = {}
@@ -44,6 +47,14 @@ export default class Resources extends EventEmitter {
 
   sourceLoaded(source, file) {
     this.items[source.name] = file
+
+    // Preload textures to avoid frame drops due to decode and GPU upload overhead
+    // Handle non sRGB textures
+    // (took one night sleep to fix this fps drop issue)
+    if (!source.nonSRGB) {
+      this.items[source.name].colorSpace = THREE.SRGBColorSpace
+    }
+    this.renderer.initTexture(this.items[source.name])
 
     this.loaded++
 
