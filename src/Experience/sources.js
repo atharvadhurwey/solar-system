@@ -55,6 +55,11 @@ export default [
     path: "textures/uranus/uranus.webp",
   },
   {
+    name: "uranusRingTexture",
+    type: "texture",
+    path: "textures/uranus/uranusRing.png",
+  },
+  {
     name: "neptuneTexture",
     type: "texture",
     path: "textures/neptune/neptune.webp",

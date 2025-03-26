@@ -4,6 +4,9 @@ import Experience from "../Experience.js"
 import uranusVertexShader from "../../shaders/uranus/surface/vertex.glsl"
 import uranusFragmentShader from "../../shaders/uranus/surface/fragment.glsl"
 
+import uranusRingVertexShader from "../../shaders/uranus/ring/vertex.glsl"
+import uranusRingFragmentShader from "../../shaders/uranus/ring/fragment.glsl"
+
 import atmosphereVertexShader from "../../shaders/uranus/atmosphere/vertex.glsl"
 import atmosphereFragmentShader from "../../shaders/uranus/atmosphere/fragment.glsl"
 
@@ -24,6 +27,8 @@ export default class Uranus {
     // Resource
     this.uranusTexture = this.resources.items.uranusTexture
     this.uranusTexture.colorSpace = THREE.SRGBColorSpace
+    this.uranusRingTexture = this.resources.items.uranusRingTexture
+    this.uranusRingTexture.colorSpace = THREE.SRGBColorSpace
 
     // uranus Parameters
     this.uranusParameters = {
@@ -58,7 +63,30 @@ export default class Uranus {
 
     this.setUranus()
     this.setAtmosphere()
+    this.setRings()
     this.updateUranus()
+  }
+
+  setRings() {
+    this.innerRadius = 2
+    this.outerRadius = 3
+    this.geo = new THREE.RingGeometry(this.innerRadius, this.outerRadius, 32)
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: {
+        ringTexture: { value: this.uranusRingTexture },
+        innerRadius: { value: this.innerRadius },
+        outerRadius: { value: this.outerRadius },
+        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
+      },
+      vertexShader: uranusRingVertexShader,
+      fragmentShader: uranusRingFragmentShader,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    })
+    this.rings = new THREE.Mesh(this.geo, this.mat)
+    this.rings.rotation.x = Math.PI * 0.45
+    this.scene.add(this.rings)
   }
 
   setUranus() {
@@ -73,7 +101,6 @@ export default class Uranus {
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.uranusParameters.atmosphereTwilightColor)),
       },
     })
-    this.uranusMaterial.toneMapped = false
     this.uranus = new THREE.Mesh(this.uranusGeometry, this.uranusMaterial)
     this.scene.add(this.uranus)
   }
@@ -103,6 +130,7 @@ export default class Uranus {
 
     // Debug
     this.uranus.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
+    this.rings.position.copy(this.uranus.position)
     this.uranusAtmosphere.position.copy(this.uranus.position)
 
     // Uniforms
