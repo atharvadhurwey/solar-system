@@ -2,7 +2,7 @@ uniform float uTime;
 uniform float uCloudsSpeed;
 uniform sampler2D uSurfaceTexture;
 uniform sampler2D uAtmosphereTexture;
-uniform vec3 uSunDirection;
+uniform vec3 uPlanetPosition;
 uniform vec3 uAtmosphereColor;
 uniform vec3 uAtmosphereTwilightColor;
 
@@ -12,6 +12,7 @@ varying vec3 vPosition;
 
 void main()
 {
+    vec3 uSunDirection = normalize(-uPlanetPosition);
     vec3 viewDirection = normalize(vPosition - cameraPosition);
     vec3 normal = normalize(vNormal);
     vec3 color = vec3(0.0);

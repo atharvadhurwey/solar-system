@@ -18,11 +18,12 @@ export default class World {
     this.resources.on("ready", () => {
       // Setup
       const timeScale = 100000
+      const distanceScale = 1
 
       // Setup
       this.sun = new Sun()
-      this.mercury = new Mercury({ distanceFromSun: 60.5, scale: 1, timeScale })
-      // this.venus = new Venus({ distanceFromSun: 14 })
+      this.mercury = new Mercury({ distanceScale, scale: 1, timeScale })
+      this.venus = new Venus({ distanceScale, scale: 1, timeScale })
       // this.earth = new Earth({ distanceFromSun: 21 })
       // this.mars = new Mars({ distanceFromSun: 28 })
       // this.jupiter = new Jupiter({ distanceFromSun: 35 })

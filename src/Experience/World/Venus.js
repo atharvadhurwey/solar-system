@@ -54,83 +54,129 @@ export default class Venus {
         .step(0.0001)
         .name("cloudsSpeed")
         .onChange(() => {
-          this.venusMaterial.uniforms.uCloudsSpeed.value = this.venusParameters.cloudsSpeed
+          this.venusMaterial.uniforms.uCloudsSpeed.value = this.venusParameters.cloudsSpeed / this.timeScale
         })
       this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to venus")
     }
 
-    // TEMP
-    // Sun Coordinates to calculate sun rays direction
-    this.venusSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
-    this.sunDirection = new THREE.Vector3()
-    this.distanceFromSun = _options.distanceFromSun
+    // Options
+    this.distanceScale = _options.distanceScale
+    this.venusSize = _options.scale
+    this.timeScale = _options.timeScale
 
+    // Common
+    this.reusableVec3 = new THREE.Vector3()
+    this.DAY_IN_SECONDS = 86400 // 24 * 60 * 60
+
+    // Setup
     this.setVenus()
     this.setAtmosphere()
-    this.updatevenus()
+    this.createOrbit(this.distanceScale, 100)
+  }
+
+  createOrbit(distanceScale, segments) {
+    const AU = 149.6 // 1 Astronomical Unit (AU) in million km (scaled for Three.js)
+    const semiMajorAxis = 0.723 * AU * distanceScale // Scale to AU (Three.js units)
+    const eccentricity = 0.0067
+    const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity ** 2)
+    const inclinationMatrix = new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(3.39))
+
+    const points = []
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      this.reusableVec3.set(semiMajorAxis * Math.cos(angle), 0, semiMinorAxis * Math.sin(angle))
+      this.reusableVec3.applyMatrix4(inclinationMatrix) // Apply inclination in one step
+      points.push(this.reusableVec3.clone()) // Clone to avoid overwriting
+    }
+
+    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x888888 })
+    const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial)
+    this.scene.add(orbitLine)
+
+    this.orbitCurve = new THREE.CatmullRomCurve3(points)
+
+    // Set orbital period and speed
+    this.orbitalPeriod = 225 * this.DAY_IN_SECONDS
+    this.orbitalSpeed = (2 * Math.PI) / this.orbitalPeriod
   }
 
   setVenus() {
-    this.venusGeometry = new THREE.SphereGeometry(1, 32, 32)
+    const VENUS_ROTATION_PERIOD = 243 * this.DAY_IN_SECONDS // Convert days to seconds
+    this.venusRotationSpeed = -(2 * Math.PI) / VENUS_ROTATION_PERIOD // Negative for retrograde
+    const axialTilt = THREE.MathUtils.degToRad(177.4) // Convert tilt to radians
+
+    this.venusGeometry = new THREE.SphereGeometry(this.venusSize, 32, 32)
     this.venusMaterial = new THREE.ShaderMaterial({
       vertexShader: venusVertexShader,
       fragmentShader: venusFragmentShader,
       uniforms: {
         uTime: new THREE.Uniform(0),
-        uCloudsSpeed: new THREE.Uniform(this.venusParameters.cloudsSpeed),
+        uCloudsSpeed: new THREE.Uniform(this.venusParameters.cloudsSpeed / this.timeScale),
         uSurfaceTexture: new THREE.Uniform(this.venusSurfaceTexture),
         uAtmosphereTexture: new THREE.Uniform(this.venusAtmosphereTexture),
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.venusParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.venusParameters.atmosphereTwilightColor)),
       },
       transparent: true,
     })
     this.venus = new THREE.Mesh(this.venusGeometry, this.venusMaterial)
+
+    this.venus.rotation.z = axialTilt // Tilt along Z-axis
+
+    // Using to update the position of the planet in the shader to calculate sun direction
+    this.venusMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
+
     this.scene.add(this.venus)
   }
 
   setAtmosphere() {
+    const atmosphereScale = this.venusSize * 1.04
+
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
       uniforms: {
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.venusParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.venusParameters.atmosphereTwilightColor)),
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3()),
       },
       side: THREE.BackSide,
       transparent: true,
     })
     this.venusAtmosphere = new THREE.Mesh(this.venusGeometry, this.atmosphereMaterial)
-    this.venusAtmosphere.scale.set(1.04, 1.04, 1.04)
+
+    this.venusAtmosphere.scale.set(atmosphereScale, atmosphereScale, atmosphereScale)
     this.venusAtmosphere.position.copy(this.venus.position)
+
     this.scene.add(this.venusAtmosphere)
   }
 
-  updatevenus() {
-    // Sun direction
-    this.sunDirection.setFromSpherical(this.venusSpherical)
-
-    // Debug
-    this.venus.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
-    this.venusAtmosphere.position.copy(this.venus.position)
-
-    // Uniforms
-    this.venusMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-    this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-  }
-
   updateCamera() {
-    // move camera to venus
-    this.camera.instance.lookAt(this.venus.position)
-    this.camera.controls.target.copy(this.venus.position)
+    // Move camera close to Venus
+    const venusPosition = this.venus.position.clone() // Get Venus's position
+    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
 
-    this.camera.instance.position.set(-2.7293515826281833, 0.0, -15.143553872497971)
+    this.camera.instance.position.copy(venusPosition).add(offset)
+    this.camera.instance.lookAt(venusPosition) // Ensure camera faces Venus
+    this.camera.controls.target.copy(venusPosition) // Update controls
   }
 
   update() {
-    this.venus.rotation.y = this.time.elapsed * 0.1
-    this.venusMaterial.uniforms.uTime.value = this.time.elapsed
+    const elapsedTime = this.time.elapsed * this.timeScale // Scale time
+    const t = (elapsedTime % this.orbitalPeriod) / this.orbitalPeriod
+
+    // update position
+    this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
+    this.venus.position.copy(this.reusableVec3)
+    this.venusAtmosphere.position.copy(this.reusableVec3)
+
+    // updating uniforms
+    this.venusMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.atmosphereMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.venusMaterial.uniforms.uTime.value = elapsedTime
+
+    // Update rotation
+    this.venus.rotation.y = elapsedTime * this.venusRotationSpeed
   }
 }
