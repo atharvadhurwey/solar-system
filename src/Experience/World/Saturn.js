@@ -53,21 +53,51 @@ export default class Saturn {
       this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to saturn")
     }
 
-    // TEMP
-    // Sun Coordinates to calculate sun rays direction
-    this.saturnSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
-    this.sunDirection = new THREE.Vector3()
-    this.distanceFromSun = _options.distanceFromSun
+    // Options
+    this.distanceScale = _options.distanceScale
+    this.saturnSize = _options.scale
+    this.timeScale = _options.timeScale
 
-    this.setsaturn()
-    this.setRings()
+    // Common
+    this.reusableVec3 = new THREE.Vector3()
+    this.DAY_IN_SECONDS = 86400 // 24 * 60 * 60
+
+    this.setSaturn()
     this.setAtmosphere()
-    this.updatesaturn()
+    this.setRings()
+    this.createOrbit(this.distanceScale, 100)
+  }
+
+  createOrbit(distanceScale, segments) {
+    const AU = 149.6 // 1 Astronomical Unit (AU) in million km (scaled for Three.js)
+    this.semiMajorAxis = 9.537 * AU * distanceScale // Scale to AU (Three.js units)
+    const eccentricity = 0.0565
+    const semiMinorAxis = this.semiMajorAxis * Math.sqrt(1 - eccentricity ** 2)
+    const inclinationMatrix = new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(2.49))
+
+    const points = []
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      this.reusableVec3.set(this.semiMajorAxis * Math.cos(angle), 0, semiMinorAxis * Math.sin(angle))
+      this.reusableVec3.applyMatrix4(inclinationMatrix) // Apply inclination in one step
+      points.push(this.reusableVec3.clone()) // Clone to avoid overwriting
+    }
+
+    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x888888 })
+    const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial)
+    this.scene.add(orbitLine)
+
+    this.orbitCurve = new THREE.CatmullRomCurve3(points)
+
+    // Set orbital period and speed
+    this.orbitalPeriod = 10759 * this.DAY_IN_SECONDS
+    this.orbitalSpeed = (2 * Math.PI) / this.orbitalPeriod
   }
 
   setRings() {
-    this.innerRadius = 2
-    this.outerRadius = 4
+    this.innerRadius = this.saturnSize * 1.2
+    this.outerRadius = this.saturnSize * 2.5
     this.geo = new THREE.RingGeometry(this.innerRadius, this.outerRadius, 32)
     this.mat = new THREE.ShaderMaterial({
       uniforms: {
@@ -81,68 +111,89 @@ export default class Saturn {
       side: THREE.DoubleSide,
     })
     this.rings = new THREE.Mesh(this.geo, this.mat)
-    this.rings.rotation.x = Math.PI * 0.45
+
+    // Tilt rings to match axial tilt
+    this.rings.rotation.x = THREE.MathUtils.degToRad(90 - 26.73)
+    this.rings.position.copy(this.saturn.position)
+
     this.scene.add(this.rings)
   }
 
-  setsaturn() {
-    this.saturnGeometry = new THREE.SphereGeometry(1, 32, 32)
+  setSaturn() {
+    const ROTATION_SPEED = 10.7 * this.DAY_IN_SECONDS // Convert days in seconds
+    this.saturnRotationSpeed = (2 * Math.PI) / ROTATION_SPEED // Convert to radians per second
+    const axialTilt = THREE.MathUtils.degToRad(26.73) // Convert tilt to radians
+
+    this.saturnGeometry = new THREE.SphereGeometry(this.saturnSize, 32, 32)
     this.saturnMaterial = new THREE.ShaderMaterial({
       vertexShader: saturnVertexShader,
       fragmentShader: saturnFragmentShader,
       uniforms: {
         uSurfaceTexture: new THREE.Uniform(this.saturnSurfaceTexture),
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.saturnParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.saturnParameters.atmosphereTwilightColor)),
       },
     })
     this.saturn = new THREE.Mesh(this.saturnGeometry, this.saturnMaterial)
+
+    this.saturn.position.set(10, 0, 0)
+
+    this.saturn.rotation.y = axialTilt
+
+    // Using to update the position of the planet in the shader to calculate sun direction
+    this.saturnMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
+
     this.scene.add(this.saturn)
   }
 
   setAtmosphere() {
+    const atmosphereScale = this.saturnSize * 1.03
+
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
       uniforms: {
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.saturnParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.saturnParameters.atmosphereTwilightColor)),
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
       },
       side: THREE.BackSide,
       transparent: true,
       depthWrite: false,
     })
     this.saturnAtmosphere = new THREE.Mesh(this.saturnGeometry, this.atmosphereMaterial)
-    this.saturnAtmosphere.scale.set(1.03, 1.03, 1.03)
+
+    this.saturnAtmosphere.scale.set(atmosphereScale, atmosphereScale, atmosphereScale)
     this.saturnAtmosphere.position.copy(this.saturn.position)
+
     this.scene.add(this.saturnAtmosphere)
   }
 
-  updatesaturn() {
-    // Sun direction
-    this.sunDirection.setFromSpherical(this.saturnSpherical)
-
-    // Debug
-    this.saturn.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
-    this.rings.position.copy(this.saturn.position)
-    this.saturnAtmosphere.position.copy(this.saturn.position)
-
-    // Uniforms
-    this.saturnMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-    this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-  }
-
   updateCamera() {
-    // move camera to saturn
-    this.camera.instance.lookAt(this.saturn.position)
-    this.camera.controls.target.copy(this.saturn.position)
+    // Move camera close to saturn
+    const saturnPosition = this.saturn.position.clone() // Get saturn's position
+    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
 
-    this.camera.instance.position.set(-15.727900354744083, 0.711429269023784, -39.14932790557243)
+    this.camera.instance.position.copy(saturnPosition).add(offset)
+    this.camera.instance.lookAt(saturnPosition) // Ensure camera faces saturn
+    this.camera.controls.target.copy(saturnPosition) // Update controls
   }
 
   update() {
-    this.saturn.rotation.y = this.time.elapsed * 0.1
+    const elapsedTime = this.time.elapsed * this.timeScale // Scale time
+    const t = (elapsedTime % this.orbitalPeriod) / this.orbitalPeriod
+
+    // update position
+    this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
+    this.saturn.position.copy(this.reusableVec3)
+    this.saturnAtmosphere.position.copy(this.reusableVec3)
+    this.rings.position.copy(this.reusableVec3)
+
+    // updating uniforms
+    this.saturnMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.atmosphereMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+
+    // Update rotation
+    this.saturn.rotation.y = elapsedTime * this.saturnRotationSpeed
   }
 }

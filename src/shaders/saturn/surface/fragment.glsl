@@ -1,5 +1,5 @@
 uniform sampler2D uSurfaceTexture;
-uniform vec3 uSunDirection;
+uniform vec3 uPlanetPosition;
 uniform vec3 uAtmosphereColor;
 uniform vec3 uAtmosphereTwilightColor;
 
@@ -9,12 +9,13 @@ varying vec3 vPosition;
 
 void main()
 {
+    vec3 sunDirection = normalize(-uPlanetPosition);
     vec3 viewDirection = normalize(vPosition - cameraPosition);
     vec3 normal = normalize(vNormal);
     vec3 color = vec3(0.0);
 
     // Sun orientation
-    float sunOrientation = dot(uSunDirection, normal);
+    float sunOrientation = dot(sunDirection, normal);
 
     // Day / night color
     float dayMix = smoothstep(-0.25, 0.5, sunOrientation);
@@ -31,7 +32,7 @@ void main()
     color = mix(color, atmosphereColor, fresnel * atmosphereDayMix); 
 
     // Specular
-    vec3 reflection = reflect(-uSunDirection, normal);
+    vec3 reflection = reflect(-sunDirection, normal);
     float specular = - dot(reflection, viewDirection);
     specular = pow(max(specular, 0.0), 32.0);
 
