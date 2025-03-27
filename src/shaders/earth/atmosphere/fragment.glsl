@@ -1,4 +1,4 @@
-uniform vec3 uSunDirection;
+uniform vec3 uPlanetPosition;
 uniform vec3 uAtmosphereDayColor;
 uniform vec3 uAtmosphereTwilightColor;
 
@@ -7,12 +7,13 @@ varying vec3 vPosition;
 
 void main()
 {
+    vec3 sunDirection = normalize(-uPlanetPosition);
     vec3 viewDirection = normalize(vPosition - cameraPosition);
     vec3 normal = normalize(vNormal);
     vec3 color = vec3(0.0);
 
     // Sun orientation
-    float sunOrientation = dot(uSunDirection, normal);
+    float sunOrientation = dot(sunDirection, normal);
 
     // Atmosphere
     float atmosphereDayMix = smoothstep(-0.5, 1.0, sunOrientation);

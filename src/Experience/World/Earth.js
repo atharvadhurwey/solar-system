@@ -62,19 +62,53 @@ export default class Earth {
       this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to earth")
     }
 
-    // TEMP
-    // Sun Coordinates to calculate sun rays direction
-    this.earthSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
-    this.sunDirection = new THREE.Vector3()
-    this.distanceFromSun = _options.distanceFromSun
+    // Options
+    this.distanceScale = _options.distanceScale
+    this.earthSize = _options.scale
+    this.timeScale = _options.timeScale
+
+    // Common
+    this.reusableVec3 = new THREE.Vector3()
+    this.DAY_IN_SECONDS = 86400 // 24 * 60 * 60
 
     this.setEarth()
     this.setAtmosphere()
-    this.updateEarth()
+    this.createOrbit(this.distanceScale, 100)
+  }
+
+  createOrbit(distanceScale, segments) {
+    const AU = 149.6 // 1 Astronomical Unit (AU) in million km (scaled for Three.js)
+    this.semiMajorAxis = 1.0 * AU * distanceScale // Scale to AU (Three.js units)
+    const eccentricity = 0.0167
+    const semiMinorAxis = this.semiMajorAxis * Math.sqrt(1 - eccentricity ** 2)
+    const inclinationMatrix = new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(0))
+
+    const points = []
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      this.reusableVec3.set(this.semiMajorAxis * Math.cos(angle), 0, semiMinorAxis * Math.sin(angle))
+      this.reusableVec3.applyMatrix4(inclinationMatrix) // Apply inclination in one step
+      points.push(this.reusableVec3.clone()) // Clone to avoid overwriting
+    }
+
+    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x888888 })
+    const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial)
+    this.scene.add(orbitLine)
+
+    this.orbitCurve = new THREE.CatmullRomCurve3(points)
+
+    // Set orbital period and speed
+    this.orbitalPeriod = 365.25 * this.DAY_IN_SECONDS
+    this.orbitalSpeed = (2 * Math.PI) / this.orbitalPeriod
   }
 
   setEarth() {
-    this.earthGeometry = new THREE.SphereGeometry(1, 32, 32)
+    const EARTH_ROTATION_SPEED = 23.3 * this.DAY_IN_SECONDS // Convert days in seconds
+    this.earthRotationSpeed = (2 * Math.PI) / EARTH_ROTATION_SPEED // Convert to radians per second
+    const axialTilt = THREE.MathUtils.degToRad(23.44) // Convert tilt to radians
+
+    this.earthGeometry = new THREE.SphereGeometry(this.earthSize, 32, 32)
     this.earthMaterial = new THREE.ShaderMaterial({
       vertexShader: earthVertexShader,
       fragmentShader: earthFragmentShader,
@@ -82,56 +116,67 @@ export default class Earth {
         uDayTexture: new THREE.Uniform(this.earthDayTexture),
         uNightTexture: new THREE.Uniform(this.earthNightTexture),
         uSpecularCloudsTexture: new THREE.Uniform(this.earthSpecularCloudsTexture),
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uClouds: new THREE.Uniform(this.earthParameters.clouds),
         uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(this.earthParameters.atmosphereDayColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.earthParameters.atmosphereTwilightColor)),
       },
     })
     this.earth = new THREE.Mesh(this.earthGeometry, this.earthMaterial)
+
+    this.earth.rotation.z = axialTilt // Tilt along Z-axis
+
+    // Using to update the position of the planet in the shader to calculate sun direction
+    this.earthMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
+
     this.scene.add(this.earth)
   }
 
   setAtmosphere() {
+    const atmosphereScale = this.earthSize * 1.04
+
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
       uniforms: {
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereDayColor: new THREE.Uniform(new THREE.Color(this.earthParameters.atmosphereDayColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.earthParameters.atmosphereTwilightColor)),
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3()),
       },
       side: THREE.BackSide,
       transparent: true,
     })
     this.earthAtmosphere = new THREE.Mesh(this.earthGeometry, this.atmosphereMaterial)
-    this.earthAtmosphere.scale.set(1.04, 1.04, 1.04)
+
+    this.earthAtmosphere.scale.set(atmosphereScale, atmosphereScale, atmosphereScale)
     this.earthAtmosphere.position.copy(this.earth.position)
+
     this.scene.add(this.earthAtmosphere)
   }
 
-  updateEarth() {
-    // Sun direction
-    this.sunDirection.setFromSpherical(this.earthSpherical)
-
-    // Debug
-    this.earth.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
-    this.earthAtmosphere.position.copy(this.earth.position)
-
-    // Uniforms
-    this.earthMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-    this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-  }
-
   updateCamera() {
-    // move camera to earth
-    this.camera.instance.lookAt(this.earth.position)
-    this.camera.controls.target.copy(this.earth.position)
+    // Move camera close to earth
+    const earthPosition = this.earth.position.clone() // Get earth's position
+    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
 
-    this.camera.instance.position.set(-5.310743439248728, 0.0, -20.131895985328836)
+    this.camera.instance.position.copy(earthPosition).add(offset)
+    this.camera.instance.lookAt(earthPosition) // Ensure camera faces earth
+    this.camera.controls.target.copy(earthPosition) // Update controls
   }
 
   update() {
-    this.earth.rotation.y = this.time.elapsed * 0.1
+    const elapsedTime = this.time.elapsed * this.timeScale // Scale time
+    const t = (elapsedTime % this.orbitalPeriod) / this.orbitalPeriod
+
+    // update position
+    this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
+    this.earth.position.copy(this.reusableVec3)
+    this.earthAtmosphere.position.copy(this.reusableVec3)
+
+    // updating uniforms
+    this.earthMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.atmosphereMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+
+    // Update rotation
+    this.earth.rotation.y = elapsedTime * this.earthRotationSpeed
   }
 }
