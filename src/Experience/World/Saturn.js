@@ -95,30 +95,6 @@ export default class Saturn {
     this.orbitalSpeed = (2 * Math.PI) / this.orbitalPeriod
   }
 
-  setRings() {
-    this.innerRadius = this.saturnSize * 1.2
-    this.outerRadius = this.saturnSize * 2.5
-    this.geo = new THREE.RingGeometry(this.innerRadius, this.outerRadius, 32)
-    this.mat = new THREE.ShaderMaterial({
-      uniforms: {
-        ringTexture: { value: this.saturnRingsTexture },
-        innerRadius: { value: this.innerRadius },
-        outerRadius: { value: this.outerRadius },
-      },
-      vertexShader: saturnRingVertexShader,
-      fragmentShader: saturnRingFragmentShader,
-      transparent: true,
-      side: THREE.DoubleSide,
-    })
-    this.rings = new THREE.Mesh(this.geo, this.mat)
-
-    // Tilt rings to match axial tilt
-    this.rings.rotation.x = THREE.MathUtils.degToRad(90 - 26.73)
-    this.rings.position.copy(this.saturn.position)
-
-    this.scene.add(this.rings)
-  }
-
   setSaturn() {
     const ROTATION_SPEED = 10.7 * this.DAY_IN_SECONDS // Convert days in seconds
     this.saturnRotationSpeed = (2 * Math.PI) / ROTATION_SPEED // Convert to radians per second
@@ -136,14 +112,38 @@ export default class Saturn {
     })
     this.saturn = new THREE.Mesh(this.saturnGeometry, this.saturnMaterial)
 
-    this.saturn.position.set(10, 0, 0)
-
     this.saturn.rotation.y = axialTilt
 
     // Using to update the position of the planet in the shader to calculate sun direction
     this.saturnMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
 
     this.scene.add(this.saturn)
+  }
+
+  setRings() {
+    this.innerRadius = this.saturnSize * 1.2
+    this.outerRadius = this.saturnSize * 2.5
+    this.geo = new THREE.RingGeometry(this.innerRadius, this.outerRadius, 32)
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: {
+        ringTexture: { value: this.saturnRingsTexture },
+        innerRadius: { value: this.innerRadius },
+        outerRadius: { value: this.outerRadius },
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
+      },
+      vertexShader: saturnRingVertexShader,
+      fragmentShader: saturnRingFragmentShader,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    })
+    this.rings = new THREE.Mesh(this.geo, this.mat)
+
+    // Tilt rings to match axial tilt
+    this.rings.rotation.x = THREE.MathUtils.degToRad(90 - 26.73)
+    this.rings.position.copy(this.saturn.position)
+
+    this.scene.add(this.rings)
   }
 
   setAtmosphere() {
@@ -192,6 +192,7 @@ export default class Saturn {
     // updating uniforms
     this.saturnMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
     this.atmosphereMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.mat.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
 
     // Update rotation
     this.saturn.rotation.y = elapsedTime * this.saturnRotationSpeed

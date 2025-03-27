@@ -53,28 +53,83 @@ export default class Uranus {
       this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to uranus")
     }
 
-    // TEMP
-    // Sun Coordinates to calculate sun rays direction
-    this.uranusSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
-    this.sunDirection = new THREE.Vector3()
-    this.distanceFromSun = _options.distanceFromSun
+    // Options
+    this.distanceScale = _options.distanceScale
+    this.uranusSize = _options.scale
+    this.timeScale = _options.timeScale
+
+    // Common
+    this.reusableVec3 = new THREE.Vector3()
+    this.DAY_IN_SECONDS = 86400 // 24 * 60 * 60
 
     this.setUranus()
     this.setAtmosphere()
     this.setRings()
-    this.updateUranus()
+    this.createOrbit(this.distanceScale, 100)
+  }
+
+  createOrbit(distanceScale, segments) {
+    const AU = 149.6 // 1 Astronomical Unit (AU) in million km (scaled for Three.js)
+    this.semiMajorAxis = 19.191 * AU * distanceScale // Scale to AU (Three.js units)
+    const eccentricity = 0.046
+    const semiMinorAxis = this.semiMajorAxis * Math.sqrt(1 - eccentricity ** 2)
+    const inclinationMatrix = new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(0.77))
+
+    const points = []
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      this.reusableVec3.set(this.semiMajorAxis * Math.cos(angle), 0, semiMinorAxis * Math.sin(angle))
+      this.reusableVec3.applyMatrix4(inclinationMatrix) // Apply inclination in one step
+      points.push(this.reusableVec3.clone()) // Clone to avoid overwriting
+    }
+
+    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x888888 })
+    const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial)
+    this.scene.add(orbitLine)
+
+    this.orbitCurve = new THREE.CatmullRomCurve3(points)
+
+    // Set orbital period and speed
+    this.orbitalPeriod = 30687 * this.DAY_IN_SECONDS
+    this.orbitalSpeed = (2 * Math.PI) / this.orbitalPeriod
+  }
+
+  setUranus() {
+    const ROTATION_SPEED = 17.2 * this.DAY_IN_SECONDS // Convert days in seconds
+    this.uranusRotationSpeed = (2 * Math.PI) / ROTATION_SPEED // Convert to radians per second
+    const axialTilt = THREE.MathUtils.degToRad(97.8) // Convert tilt to radians
+
+    this.uranusGeometry = new THREE.SphereGeometry(this.uranusSize, 32, 32)
+    this.uranusMaterial = new THREE.ShaderMaterial({
+      vertexShader: uranusVertexShader,
+      fragmentShader: uranusFragmentShader,
+      uniforms: {
+        uSurfaceTexture: new THREE.Uniform(this.uranusTexture),
+        uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.uranusParameters.atmosphereColor)),
+        uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.uranusParameters.atmosphereTwilightColor)),
+      },
+    })
+    this.uranus = new THREE.Mesh(this.uranusGeometry, this.uranusMaterial)
+
+    this.uranus.rotation.x = axialTilt
+
+    // Using to update the position of the planet in the shader to calculate sun direction
+    this.uranusMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
+
+    this.scene.add(this.uranus)
   }
 
   setRings() {
-    this.innerRadius = 2
-    this.outerRadius = 3
+    this.innerRadius = this.uranusSize * 1.3
+    this.outerRadius = this.uranusSize * 1.8
     this.geo = new THREE.RingGeometry(this.innerRadius, this.outerRadius, 32)
     this.mat = new THREE.ShaderMaterial({
       uniforms: {
         ringTexture: { value: this.uranusRingTexture },
         innerRadius: { value: this.innerRadius },
         outerRadius: { value: this.outerRadius },
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
       },
       vertexShader: uranusRingVertexShader,
       fragmentShader: uranusRingFragmentShader,
@@ -83,68 +138,64 @@ export default class Uranus {
       side: THREE.DoubleSide,
     })
     this.rings = new THREE.Mesh(this.geo, this.mat)
-    this.rings.rotation.x = Math.PI * 0.45
+
+    // Tilt rings to match Uranus’ extreme tilt
+    this.rings.rotation.x = THREE.MathUtils.degToRad(90)
+    this.rings.position.copy(this.uranus.position)
+
     this.scene.add(this.rings)
   }
 
-  setUranus() {
-    this.uranusGeometry = new THREE.SphereGeometry(1, 32, 32)
-    this.uranusMaterial = new THREE.ShaderMaterial({
-      vertexShader: uranusVertexShader,
-      fragmentShader: uranusFragmentShader,
-      uniforms: {
-        uSurfaceTexture: new THREE.Uniform(this.uranusTexture),
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
-        uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.uranusParameters.atmosphereColor)),
-        uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.uranusParameters.atmosphereTwilightColor)),
-      },
-    })
-    this.uranus = new THREE.Mesh(this.uranusGeometry, this.uranusMaterial)
-    this.scene.add(this.uranus)
-  }
-
   setAtmosphere() {
+    const atmosphereScale = this.uranusSize * 1.04
+
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
       uniforms: {
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.uranusParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.uranusParameters.atmosphereTwilightColor)),
       },
       side: THREE.BackSide,
       transparent: true,
+      depthWrite: false,
     })
     this.atmosphereMaterial.toneMapped = false
     this.uranusAtmosphere = new THREE.Mesh(this.uranusGeometry, this.atmosphereMaterial)
-    this.uranusAtmosphere.scale.set(1.04, 1.04, 1.04)
+
+    this.uranusAtmosphere.scale.set(atmosphereScale, atmosphereScale, atmosphereScale)
     this.uranusAtmosphere.position.copy(this.uranus.position)
+
     this.scene.add(this.uranusAtmosphere)
   }
 
-  updateUranus() {
-    // Sun direction
-    this.sunDirection.setFromSpherical(this.uranusSpherical)
-
-    // Debug
-    this.uranus.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
-    this.rings.position.copy(this.uranus.position)
-    this.uranusAtmosphere.position.copy(this.uranus.position)
-
-    // Uniforms
-    this.uranusMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-    this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-  }
-
   updateCamera() {
-    // move camera to uranus
-    this.camera.instance.lookAt(this.uranus.position)
-    this.camera.controls.target.copy(this.uranus.position)
+    // Move camera close to uranus
+    const uranusPosition = this.uranus.position.clone() // Get uranus's position
+    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
 
-    this.camera.instance.position.set(-18.829658726441274, -0.04239810505201707, -44.96938690991533)
+    this.camera.instance.position.copy(uranusPosition).add(offset)
+    this.camera.instance.lookAt(uranusPosition) // Ensure camera faces uranus
+    this.camera.controls.target.copy(uranusPosition) // Update controls
   }
 
   update() {
-    this.uranus.rotation.y = this.time.elapsed * 0.1
+    const elapsedTime = this.time.elapsed * this.timeScale // Scale time
+    const t = (elapsedTime % this.orbitalPeriod) / this.orbitalPeriod
+
+    // update position
+    this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
+    this.uranus.position.copy(this.reusableVec3)
+    this.uranusAtmosphere.position.copy(this.reusableVec3)
+    this.rings.position.copy(this.reusableVec3)
+
+    // updating uniforms
+    this.uranusMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.atmosphereMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.mat.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+
+    // Update rotation
+    this.uranus.rotation.y = elapsedTime * this.uranusRotationSpeed
   }
 }
