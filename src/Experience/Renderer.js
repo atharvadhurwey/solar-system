@@ -23,6 +23,9 @@ export default class Renderer {
 
     this.instance.toneMapping = THREE.NeutralToneMapping
 
+    this.instance.gammaFactor = 2.2
+    this.instance.outputEncoding = THREE.sRGBEncoding
+
     // this.instance.toneMappingExposure = 1.75
     // this.instance.shadowMap.enabled = true
     // this.instance.shadowMap.type = THREE.PCFSoftShadowMap

@@ -91,9 +91,9 @@ export default class Mars {
   }
 
   setMars() {
-    const MARS_ROTATION_SPEED = 23.3 * this.DAY_IN_SECONDS // Convert days in seconds
+    const MARS_ROTATION_SPEED = 24.6 * this.DAY_IN_SECONDS // Convert days in seconds
     this.marsRotationSpeed = (2 * Math.PI) / MARS_ROTATION_SPEED // Convert to radians per second
-    const axialTilt = THREE.MathUtils.degToRad(23.44) // Convert tilt to radians
+    const axialTilt = THREE.MathUtils.degToRad(25.19) // Convert tilt to radians
 
     this.marsGeometry = new THREE.SphereGeometry(this.marsSize, 32, 32)
     this.marsMaterial = new THREE.ShaderMaterial({
