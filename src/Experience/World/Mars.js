@@ -49,75 +49,120 @@ export default class Mars {
       this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to mars")
     }
 
-    // TEMP
-    // Sun Coordinates to calculate sun rays direction
-    this.marsSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
-    this.sunDirection = new THREE.Vector3()
-    this.distanceFromSun = _options.distanceFromSun
+    // Options
+    this.distanceScale = _options.distanceScale
+    this.marsSize = _options.scale
+    this.timeScale = _options.timeScale
+
+    // Common
+    this.reusableVec3 = new THREE.Vector3()
+    this.DAY_IN_SECONDS = 86400 // 24 * 60 * 60
 
     this.setMars()
     this.setAtmosphere()
-    this.updateMars()
+    this.createOrbit(this.distanceScale, 100)
+  }
+
+  createOrbit(distanceScale, segments) {
+    const AU = 149.6 // 1 Astronomical Unit (AU) in million km (scaled for Three.js)
+    this.semiMajorAxis = 1.524 * AU * distanceScale // Scale to AU (Three.js units)
+    const eccentricity = 0.0934
+    const semiMinorAxis = this.semiMajorAxis * Math.sqrt(1 - eccentricity ** 2)
+    const inclinationMatrix = new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(1.85))
+
+    const points = []
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      this.reusableVec3.set(this.semiMajorAxis * Math.cos(angle), 0, semiMinorAxis * Math.sin(angle))
+      this.reusableVec3.applyMatrix4(inclinationMatrix) // Apply inclination in one step
+      points.push(this.reusableVec3.clone()) // Clone to avoid overwriting
+    }
+
+    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x888888 })
+    const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial)
+    this.scene.add(orbitLine)
+
+    this.orbitCurve = new THREE.CatmullRomCurve3(points)
+
+    // Set orbital period and speed
+    this.orbitalPeriod = 687 * this.DAY_IN_SECONDS
+    this.orbitalSpeed = (2 * Math.PI) / this.orbitalPeriod
   }
 
   setMars() {
-    this.marsGeometry = new THREE.SphereGeometry(1, 32, 32)
+    const MARS_ROTATION_SPEED = 23.3 * this.DAY_IN_SECONDS // Convert days in seconds
+    this.marsRotationSpeed = (2 * Math.PI) / MARS_ROTATION_SPEED // Convert to radians per second
+    const axialTilt = THREE.MathUtils.degToRad(23.44) // Convert tilt to radians
+
+    this.marsGeometry = new THREE.SphereGeometry(this.marsSize, 32, 32)
     this.marsMaterial = new THREE.ShaderMaterial({
       vertexShader: marsVertexShader,
       fragmentShader: marsFragmentShader,
       uniforms: {
         uSurfaceTexture: new THREE.Uniform(this.marsTexture),
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.marsParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.marsParameters.atmosphereTwilightColor)),
       },
     })
     this.marsMaterial.toneMapped = false
     this.mars = new THREE.Mesh(this.marsGeometry, this.marsMaterial)
+
+    this.mars.rotation.z = axialTilt // Tilt along Z-axis
+
+    // Using to update the position of the planet in the shader to calculate sun direction
+    this.marsMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
+
     this.scene.add(this.mars)
   }
 
   setAtmosphere() {
+    const atmosphereScale = this.marsSize * 1.04
+
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
       uniforms: {
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.marsParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.marsParameters.atmosphereTwilightColor)),
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
       },
       side: THREE.BackSide,
       transparent: true,
     })
     this.atmosphereMaterial.toneMapped = false
     this.marsAtmosphere = new THREE.Mesh(this.marsGeometry, this.atmosphereMaterial)
-    this.marsAtmosphere.scale.set(1.04, 1.04, 1.04)
+
+    this.marsAtmosphere.scale.set(atmosphereScale, atmosphereScale, atmosphereScale)
     this.marsAtmosphere.position.copy(this.mars.position)
+
     this.scene.add(this.marsAtmosphere)
   }
 
-  updateMars() {
-    // Sun direction
-    this.sunDirection.setFromSpherical(this.marsSpherical)
-
-    // Debug
-    this.mars.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
-    this.marsAtmosphere.position.copy(this.mars.position)
-
-    // Uniforms
-    this.marsMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-    this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-  }
-
   updateCamera() {
-    // move camera to mars
-    this.camera.instance.lookAt(this.mars.position)
-    this.camera.controls.target.copy(this.mars.position)
+    // Move camera close to mars
+    const marsPosition = this.mars.position.clone() // Get mars's position
+    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
 
-    this.camera.instance.position.set(-9.164453521070085, 0.0, -27.26908420201103)
+    this.camera.instance.position.copy(marsPosition).add(offset)
+    this.camera.instance.lookAt(marsPosition) // Ensure camera faces mars
+    this.camera.controls.target.copy(marsPosition) // Update controls
   }
 
   update() {
-    this.mars.rotation.y = this.time.elapsed * 0.1
+    const elapsedTime = this.time.elapsed * this.timeScale // Scale time
+    const t = (elapsedTime % this.orbitalPeriod) / this.orbitalPeriod
+
+    // update position
+    this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
+    this.mars.position.copy(this.reusableVec3)
+    this.marsAtmosphere.position.copy(this.reusableVec3)
+
+    // updating uniforms
+    this.marsMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.atmosphereMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+
+    // Update rotation
+    this.mars.rotation.y = elapsedTime * this.marsRotationSpeed
   }
 }
