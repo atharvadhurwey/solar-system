@@ -29,7 +29,7 @@ export default class World {
       this.jupiter = new Jupiter({ distanceScale, scale: 1, timeScale })
       this.saturn = new Saturn({ distanceScale, scale: 1, timeScale })
       this.uranus = new Uranus({ distanceScale, scale: 1, timeScale })
-      // this.neptune = new Neptune({ distanceFromSun: 56 })
+      this.neptune = new Neptune({ distanceScale, scale: 1, timeScale })
     })
   }
 

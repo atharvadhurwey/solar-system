@@ -49,40 +49,81 @@ export default class Neptune {
       this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to neptune")
     }
 
-    // TEMP
-    // Sun Coordinates to calculate sun rays direction
-    this.neptuneSpherical = new THREE.Spherical(1, Math.PI * 0.5, 0.5)
-    this.sunDirection = new THREE.Vector3()
-    this.distanceFromSun = _options.distanceFromSun
+    // Options
+    this.distanceScale = _options.distanceScale
+    this.neptuneSize = _options.scale
+    this.timeScale = _options.timeScale
+
+    // Common
+    this.reusableVec3 = new THREE.Vector3()
+    this.DAY_IN_SECONDS = 86400 // 24 * 60 * 60
 
     this.setNeptune()
     this.setAtmosphere()
-    this.updateNeptune()
+    this.createOrbit(this.distanceScale, 100)
+  }
+
+  createOrbit(distanceScale, segments) {
+    const AU = 149.6 // 1 Astronomical Unit (AU) in million km (scaled for Three.js)
+    this.semiMajorAxis = 30.07 * AU * distanceScale // Scale to AU (Three.js units)
+    const eccentricity = 0.009
+    const semiMinorAxis = this.semiMajorAxis * Math.sqrt(1 - eccentricity ** 2)
+    const inclinationMatrix = new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(1.77))
+
+    const points = []
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      this.reusableVec3.set(this.semiMajorAxis * Math.cos(angle), 0, semiMinorAxis * Math.sin(angle))
+      this.reusableVec3.applyMatrix4(inclinationMatrix) // Apply inclination in one step
+      points.push(this.reusableVec3.clone()) // Clone to avoid overwriting
+    }
+
+    const orbitGeometry = new THREE.BufferGeometry().setFromPoints(points)
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0x888888 })
+    const orbitLine = new THREE.Line(orbitGeometry, orbitMaterial)
+    this.scene.add(orbitLine)
+
+    this.orbitCurve = new THREE.CatmullRomCurve3(points)
+
+    // Set orbital period and speed
+    this.orbitalPeriod = 60190 * this.DAY_IN_SECONDS
+    this.orbitalSpeed = (2 * Math.PI) / this.orbitalPeriod
   }
 
   setNeptune() {
-    this.neptuneGeometry = new THREE.SphereGeometry(1, 32, 32)
+    const ROTATION_SPEED = 16.1 * this.DAY_IN_SECONDS // Convert days in seconds
+    this.neptuneRotationSpeed = (2 * Math.PI) / ROTATION_SPEED // Convert to radians per second
+    const axialTilt = THREE.MathUtils.degToRad(28.3) // Convert tilt to radians
+
+    this.neptuneGeometry = new THREE.SphereGeometry(this.neptuneSize, 32, 32)
     this.neptuneMaterial = new THREE.ShaderMaterial({
       vertexShader: neptuneVertexShader,
       fragmentShader: neptuneFragmentShader,
       uniforms: {
         uSurfaceTexture: new THREE.Uniform(this.neptuneTexture),
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.neptuneParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.neptuneParameters.atmosphereTwilightColor)),
       },
     })
     this.neptuneMaterial.toneMapped = false
     this.neptune = new THREE.Mesh(this.neptuneGeometry, this.neptuneMaterial)
+
+    this.neptune.rotation.x = axialTilt // Tilt along Z-axis
+
+    // Using to update the position of the planet in the shader to calculate sun direction
+    this.neptuneMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
+
     this.scene.add(this.neptune)
   }
 
   setAtmosphere() {
+    const atmosphereScale = this.neptuneSize * 1.04
+
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,
       fragmentShader: atmosphereFragmentShader,
       uniforms: {
-        uSunDirection: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
+        uPlanetPosition: new THREE.Uniform(new THREE.Vector3(0, 0, 1)),
         uAtmosphereColor: new THREE.Uniform(new THREE.Color(this.neptuneParameters.atmosphereColor)),
         uAtmosphereTwilightColor: new THREE.Uniform(new THREE.Color(this.neptuneParameters.atmosphereTwilightColor)),
       },
@@ -91,33 +132,37 @@ export default class Neptune {
     })
     this.atmosphereMaterial.toneMapped = false
     this.neptuneAtmosphere = new THREE.Mesh(this.neptuneGeometry, this.atmosphereMaterial)
-    this.neptuneAtmosphere.scale.set(1.04, 1.04, 1.04)
+
+    this.neptuneAtmosphere.scale.set(atmosphereScale, atmosphereScale, atmosphereScale)
     this.neptuneAtmosphere.position.copy(this.neptune.position)
+
     this.scene.add(this.neptuneAtmosphere)
   }
 
-  updateNeptune() {
-    // Sun direction
-    this.sunDirection.setFromSpherical(this.neptuneSpherical)
-
-    // Debug
-    this.neptune.position.copy(this.sunDirection).multiplyScalar(-this.distanceFromSun)
-    this.neptuneAtmosphere.position.copy(this.neptune.position)
-
-    // Uniforms
-    this.neptuneMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-    this.atmosphereMaterial.uniforms.uSunDirection.value.copy(this.sunDirection)
-  }
-
   updateCamera() {
-    // move camera to neptune
-    this.camera.instance.lookAt(this.neptune.position)
-    this.camera.controls.target.copy(this.neptune.position)
+    // Move camera close to neptune
+    const neptunePosition = this.neptune.position.clone() // Get neptune's position
+    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
 
-    this.camera.instance.position.set(-23.457858238990617, 0.16476157963130125, -52.70329661479013)
+    this.camera.instance.position.copy(neptunePosition).add(offset)
+    this.camera.instance.lookAt(neptunePosition) // Ensure camera faces neptune
+    this.camera.controls.target.copy(neptunePosition) // Update controls
   }
 
   update() {
-    this.neptune.rotation.y = this.time.elapsed * 0.1
+    const elapsedTime = this.time.elapsed * this.timeScale // Scale time
+    const t = (elapsedTime % this.orbitalPeriod) / this.orbitalPeriod
+
+    // update position
+    this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
+    this.neptune.position.copy(this.reusableVec3)
+    this.neptuneAtmosphere.position.copy(this.reusableVec3)
+
+    // updating uniforms
+    this.neptuneMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+    this.atmosphereMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
+
+    // Update rotation
+    this.neptune.rotation.y = elapsedTime * this.neptuneRotationSpeed
   }
 }
