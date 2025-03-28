@@ -46,7 +46,7 @@ export default class Neptune {
           this.neptuneMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.neptuneParameters.atmosphereTwilightColor)
         })
 
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to neptune")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.neptune) }, "updateCamera").name("move to neptune")
     }
 
     // Options
@@ -107,6 +107,7 @@ export default class Neptune {
     })
     this.neptuneMaterial.toneMapped = false
     this.neptune = new THREE.Mesh(this.neptuneGeometry, this.neptuneMaterial)
+    this.neptune.name = "Neptune"
 
     this.neptune.rotation.x = axialTilt // Tilt along Z-axis
 
@@ -137,16 +138,6 @@ export default class Neptune {
     this.neptuneAtmosphere.position.copy(this.neptune.position)
 
     this.scene.add(this.neptuneAtmosphere)
-  }
-
-  updateCamera() {
-    // Move camera close to neptune
-    const neptunePosition = this.neptune.position.clone() // Get neptune's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(neptunePosition).add(offset)
-    this.camera.instance.lookAt(neptunePosition) // Ensure camera faces neptune
-    this.camera.controls.target.copy(neptunePosition) // Update controls
   }
 
   update() {

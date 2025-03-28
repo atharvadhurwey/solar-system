@@ -45,7 +45,14 @@ export default class Mercury {
       //   .onChange(() => {
       //     this.mercuryMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.mercuryParameters.atmosphereTwilightColor)
       //   })
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to mercury")
+      this.debugFolder
+        .add(
+          {
+            updateCamera: () => this.camera.setFollowTarget(this.mercury),
+          },
+          "updateCamera"
+        )
+        .name("move to mercury")
     }
 
     // Options
@@ -106,6 +113,7 @@ export default class Mercury {
       },
     })
     this.mercury = new THREE.Mesh(this.mercuryGeometry, this.mercuryMaterial)
+    this.mercury.name = "Mercury"
 
     this.mercury.rotation.z = axialTilt // Tilt along Z-axis
 
@@ -113,16 +121,6 @@ export default class Mercury {
     this.mercuryMaterial.uniforms.uPlanetPosition = new THREE.Uniform(new THREE.Vector3())
 
     this.scene.add(this.mercury)
-  }
-
-  updateCamera() {
-    // Move camera close to Mercury
-    const mercuryPosition = this.mercury.position.clone() // Get Mercury's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(mercuryPosition).add(offset)
-    this.camera.instance.lookAt(mercuryPosition) // Ensure camera faces Mercury
-    this.camera.controls.target.copy(mercuryPosition) // Update controls
   }
 
   update() {

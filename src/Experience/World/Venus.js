@@ -56,7 +56,7 @@ export default class Venus {
         .onChange(() => {
           this.venusMaterial.uniforms.uCloudsSpeed.value = this.venusParameters.cloudsSpeed / this.timeScale
         })
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to venus")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.venus) }, "updateCamera").name("move to venus")
     }
 
     // Options
@@ -121,6 +121,7 @@ export default class Venus {
       transparent: true,
     })
     this.venus = new THREE.Mesh(this.venusGeometry, this.venusMaterial)
+    this.venus.name = "Venus"
 
     this.venus.rotation.z = axialTilt // Tilt along Z-axis
 
@@ -150,16 +151,6 @@ export default class Venus {
     this.venusAtmosphere.position.copy(this.venus.position)
 
     this.scene.add(this.venusAtmosphere)
-  }
-
-  updateCamera() {
-    // Move camera close to Venus
-    const venusPosition = this.venus.position.clone() // Get Venus's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(venusPosition).add(offset)
-    this.camera.instance.lookAt(venusPosition) // Ensure camera faces Venus
-    this.camera.controls.target.copy(venusPosition) // Update controls
   }
 
   update() {

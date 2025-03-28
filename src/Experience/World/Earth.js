@@ -59,7 +59,7 @@ export default class Earth {
           this.earthMaterial.uniforms.uClouds.value = this.earthParameters.clouds
         })
 
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to earth")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.earth) }, "updateCamera").name("move to earth")
     }
 
     // Options
@@ -122,6 +122,7 @@ export default class Earth {
       },
     })
     this.earth = new THREE.Mesh(this.earthGeometry, this.earthMaterial)
+    this.earth.name = "Earth"
 
     this.earth.rotation.z = axialTilt // Tilt along Z-axis
 
@@ -151,16 +152,6 @@ export default class Earth {
     this.earthAtmosphere.position.copy(this.earth.position)
 
     this.scene.add(this.earthAtmosphere)
-  }
-
-  updateCamera() {
-    // Move camera close to earth
-    const earthPosition = this.earth.position.clone() // Get earth's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(earthPosition).add(offset)
-    this.camera.instance.lookAt(earthPosition) // Ensure camera faces earth
-    this.camera.controls.target.copy(earthPosition) // Update controls
   }
 
   update() {

@@ -50,7 +50,7 @@ export default class Saturn {
           this.saturnMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.saturnParameters.atmosphereTwilightColor)
         })
 
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to saturn")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.saturn) }, "updateCamera").name("move to saturn")
     }
 
     // Options
@@ -111,6 +111,7 @@ export default class Saturn {
       },
     })
     this.saturn = new THREE.Mesh(this.saturnGeometry, this.saturnMaterial)
+    this.saturn.name = "Saturn"
 
     this.saturn.rotation.y = axialTilt
 
@@ -167,16 +168,6 @@ export default class Saturn {
     this.saturnAtmosphere.position.copy(this.saturn.position)
 
     this.scene.add(this.saturnAtmosphere)
-  }
-
-  updateCamera() {
-    // Move camera close to saturn
-    const saturnPosition = this.saturn.position.clone() // Get saturn's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(saturnPosition).add(offset)
-    this.camera.instance.lookAt(saturnPosition) // Ensure camera faces saturn
-    this.camera.controls.target.copy(saturnPosition) // Update controls
   }
 
   update() {

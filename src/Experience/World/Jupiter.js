@@ -46,7 +46,7 @@ export default class Jupiter {
           this.jupiterMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.jupiterParameters.atmosphereTwilightColor)
         })
 
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to jupiter")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.jupiter) }, "updateCamera").name("move to jupiter")
     }
 
     // Options
@@ -106,6 +106,7 @@ export default class Jupiter {
       },
     })
     this.jupiter = new THREE.Mesh(this.jupiterGeometry, this.jupiterMaterial)
+    this.jupiter.name = "Jupiter"
 
     this.jupiter.rotation.z = axialTilt // Tilt along Z-axis
 
@@ -135,16 +136,6 @@ export default class Jupiter {
     this.jupiterAtmosphere.position.copy(this.jupiter.position)
 
     this.scene.add(this.jupiterAtmosphere)
-  }
-
-  updateCamera() {
-    // Move camera close to jupiter
-    const jupiterPosition = this.jupiter.position.clone() // Get jupiter's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(jupiterPosition).add(offset)
-    this.camera.instance.lookAt(jupiterPosition) // Ensure camera faces jupiter
-    this.camera.controls.target.copy(jupiterPosition) // Update controls
   }
 
   update() {

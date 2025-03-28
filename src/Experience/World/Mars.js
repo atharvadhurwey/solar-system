@@ -46,7 +46,7 @@ export default class Mars {
           this.marsMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.marsParameters.atmosphereTwilightColor)
         })
 
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to mars")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.mars) }, "updateCamera").name("move to mars")
     }
 
     // Options
@@ -107,6 +107,7 @@ export default class Mars {
     })
     this.marsMaterial.toneMapped = false
     this.mars = new THREE.Mesh(this.marsGeometry, this.marsMaterial)
+    this.mars.name = "Mars"
 
     this.mars.rotation.z = axialTilt // Tilt along Z-axis
 
@@ -137,16 +138,6 @@ export default class Mars {
     this.marsAtmosphere.position.copy(this.mars.position)
 
     this.scene.add(this.marsAtmosphere)
-  }
-
-  updateCamera() {
-    // Move camera close to mars
-    const marsPosition = this.mars.position.clone() // Get mars's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(marsPosition).add(offset)
-    this.camera.instance.lookAt(marsPosition) // Ensure camera faces mars
-    this.camera.controls.target.copy(marsPosition) // Update controls
   }
 
   update() {

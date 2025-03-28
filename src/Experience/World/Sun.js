@@ -18,6 +18,18 @@ export default class Sun {
     this.experience = new Experience()
     this.scene = this.experience.scene
     this.time = this.experience.time
+    this.camera = this.experience.camera
+    this.debug = this.experience.debug
+
+    // Debug
+    if (this.debug.active) {
+      this.debugFolder = this.debug.ui.addFolder("Sun")
+    }
+
+    // debug
+    if (this.debug.active) {
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.sun) }, "updateCamera").name("move to sun")
+    }
 
     // Common
     this.basicSphereGeometry = new THREE.SphereGeometry(1, 32, 32)
@@ -72,6 +84,7 @@ export default class Sun {
     })
 
     this.sun = new THREE.Mesh(this.basicSphereGeometry, this.sunMaterial)
+    this.sun.name = "Sun"
     this.scene.add(this.sun)
   }
 

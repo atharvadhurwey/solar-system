@@ -50,7 +50,7 @@ export default class Uranus {
           this.uranusMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.uranusParameters.atmosphereTwilightColor)
         })
 
-      this.debugFolder.add({ updateCamera: () => this.updateCamera() }, "updateCamera").name("move to uranus")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.uranus) }, "updateCamera").name("move to uranus")
     }
 
     // Options
@@ -111,6 +111,7 @@ export default class Uranus {
       },
     })
     this.uranus = new THREE.Mesh(this.uranusGeometry, this.uranusMaterial)
+    this.uranus.name = "Uranus"
 
     this.uranus.rotation.x = axialTilt
 
@@ -168,16 +169,6 @@ export default class Uranus {
     this.uranusAtmosphere.position.copy(this.uranus.position)
 
     this.scene.add(this.uranusAtmosphere)
-  }
-
-  updateCamera() {
-    // Move camera close to uranus
-    const uranusPosition = this.uranus.position.clone() // Get uranus's position
-    const offset = new THREE.Vector3(0, 2, 5) // Adjust for a better view
-
-    this.camera.instance.position.copy(uranusPosition).add(offset)
-    this.camera.instance.lookAt(uranusPosition) // Ensure camera faces uranus
-    this.camera.controls.target.copy(uranusPosition) // Update controls
   }
 
   update() {
