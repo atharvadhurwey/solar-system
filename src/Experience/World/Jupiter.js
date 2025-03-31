@@ -51,7 +51,7 @@ export default class Jupiter {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.jupiterSize = _options.scale
+    this.jupiterSize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common
@@ -117,7 +117,7 @@ export default class Jupiter {
   }
 
   setAtmosphere() {
-    const atmosphereScale = this.jupiterSize * 1.04
+    const atmosphereScale = 1.04
 
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,

@@ -55,7 +55,7 @@ export default class Uranus {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.uranusSize = _options.scale
+    this.uranusSize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common
@@ -148,7 +148,7 @@ export default class Uranus {
   }
 
   setAtmosphere() {
-    const atmosphereScale = this.uranusSize * 1.04
+    const atmosphereScale = 1.04
 
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,

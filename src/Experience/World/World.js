@@ -19,17 +19,28 @@ export default class World {
       // Setup
       const timeScale = 100000
       const distanceScale = 1
+      const planetSizes = {
+        earthSize: 1, // Earth is the reference (1 unit)
+        mercurySize: 0.38,
+        venusSize: 0.95,
+        marsSize: 0.53,
+        jupiterSize: 10.97,
+        saturnSize: 9.14,
+        uranusSize: 3.98,
+        neptuneSize: 3.87,
+        sunSize: 109.3,
+      }
 
       // Setup
       this.sun = new Sun()
-      this.mercury = new Mercury({ distanceScale, scale: 1, timeScale })
-      this.venus = new Venus({ distanceScale, scale: 1, timeScale })
-      this.earth = new Earth({ distanceScale, scale: 1, timeScale })
-      this.mars = new Mars({ distanceScale, scale: 1, timeScale })
-      this.jupiter = new Jupiter({ distanceScale, scale: 1, timeScale })
-      this.saturn = new Saturn({ distanceScale, scale: 1, timeScale })
-      this.uranus = new Uranus({ distanceScale, scale: 1, timeScale })
-      this.neptune = new Neptune({ distanceScale, scale: 1, timeScale })
+      this.mercury = new Mercury({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.mercurySize })
+      this.venus = new Venus({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.venusSize })
+      this.earth = new Earth({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.earthSize })
+      this.mars = new Mars({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.marsSize })
+      this.jupiter = new Jupiter({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.jupiterSize })
+      this.saturn = new Saturn({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.saturnSize })
+      this.uranus = new Uranus({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.uranusSize })
+      this.neptune = new Neptune({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.neptuneSize })
     })
   }
 

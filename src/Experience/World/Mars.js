@@ -51,7 +51,7 @@ export default class Mars {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.marsSize = _options.scale
+    this.marsSize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common
@@ -118,7 +118,7 @@ export default class Mars {
   }
 
   setAtmosphere() {
-    const atmosphereScale = this.marsSize * 1.04
+    const atmosphereScale = 1.04
 
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,

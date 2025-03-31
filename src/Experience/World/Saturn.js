@@ -55,7 +55,7 @@ export default class Saturn {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.saturnSize = _options.scale
+    this.saturnSize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common
@@ -148,7 +148,7 @@ export default class Saturn {
   }
 
   setAtmosphere() {
-    const atmosphereScale = this.saturnSize * 1.03
+    const atmosphereScale = 1.03
 
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,

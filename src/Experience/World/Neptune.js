@@ -51,7 +51,7 @@ export default class Neptune {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.neptuneSize = _options.scale
+    this.neptuneSize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common
@@ -118,7 +118,7 @@ export default class Neptune {
   }
 
   setAtmosphere() {
-    const atmosphereScale = this.neptuneSize * 1.04
+    const atmosphereScale = 1.04 // Scale factor for the atmosphere
 
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,

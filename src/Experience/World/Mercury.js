@@ -57,7 +57,7 @@ export default class Mercury {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.mercurySize = _options.scale
+    this.mercurySize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common

@@ -61,7 +61,7 @@ export default class Venus {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.venusSize = _options.scale
+    this.venusSize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common
@@ -132,7 +132,7 @@ export default class Venus {
   }
 
   setAtmosphere() {
-    const atmosphereScale = this.venusSize * 1.04
+    const atmosphereScale = 1.04
 
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,

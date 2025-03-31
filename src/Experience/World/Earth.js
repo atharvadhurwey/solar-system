@@ -64,7 +64,7 @@ export default class Earth {
 
     // Options
     this.distanceScale = _options.distanceScale
-    this.earthSize = _options.scale
+    this.earthSize = _options.planetSize
     this.timeScale = _options.timeScale
 
     // Common
@@ -133,7 +133,7 @@ export default class Earth {
   }
 
   setAtmosphere() {
-    const atmosphereScale = this.earthSize * 1.04
+    const atmosphereScale = 1.04
 
     this.atmosphereMaterial = new THREE.ShaderMaterial({
       vertexShader: atmosphereVertexShader,

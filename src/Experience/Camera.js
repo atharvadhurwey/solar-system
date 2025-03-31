@@ -51,8 +51,10 @@ export default class Camera {
         this.spherical.theta -= deltaX
         this.spherical.phi -= deltaY
 
-        // Restrict vertical movement (phi) to prevent flipping
-        this.spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, this.spherical.phi))
+        // Restrict vertical movement (phi) based on followSettings
+        if (this.followSettings) {
+          this.spherical.phi = Math.max(this.followSettings.minPolarAngle, Math.min(this.followSettings.maxPolarAngle, this.spherical.phi))
+        }
 
         this.previousMouse.set(event.clientX, event.clientY)
       }
@@ -61,7 +63,11 @@ export default class Camera {
     this.onWheel = (event) => {
       if (this.isCameraFollowing) {
         this.spherical.radius += event.deltaY * 0.01 // Adjust zoom speed
-        this.spherical.radius = Math.max(5, Math.min(40, this.spherical.radius)) // Clamp zoom
+
+        // Use followSettings to clamp zoom
+        if (this.followSettings) {
+          this.spherical.radius = Math.max(this.followSettings.minDistance, this.spherical.radius)
+        }
       }
     }
 
@@ -75,6 +81,8 @@ export default class Camera {
   setFollowTarget(target, options = {}) {
     // specific case for the Sun
     // Disable camera follow and zoom for the Sun
+    const minDistance = target.geometry.parameters.radius + target.geometry.parameters.radius * 2
+
     if (target.name === "Sun") {
       console.log("Camera is now following the Sun")
       const offset = new THREE.Vector3().setFromSpherical(this.spherical)
@@ -86,6 +94,7 @@ export default class Camera {
       this.isCameraFollowing = false
       this.controls.enableZoom = true
       this.controls.target.copy(target.position)
+      this.spherical.radius = minDistance * 2 // Set initial zoom level
       this.controls.maxDistance = this.maxCameraDistance
       this.controls.update()
       return
@@ -96,17 +105,16 @@ export default class Camera {
     this.controls.enableZoom = false
 
     // Default values with ability to override
+
     this.followSettings = {
-      minDistance: options.minDistance || 5, // Minimum zoom distance
-      maxDistance: options.maxDistance || 50, // Maximum zoom distance
+      minDistance: minDistance || 5, // Minimum zoom distance
       minPolarAngle: options.minPolarAngle || 0.1, // Prevent flipping
       maxPolarAngle: options.maxPolarAngle || Math.PI - 0.1,
     }
 
     // Apply limits to controls
-    this.spherical.radius = this.followSettings.minDistance
+    this.spherical.radius = this.followSettings.minDistance * 2 // Set initial zoom level
     this.controls.minDistance = this.followSettings.minDistance
-    this.controls.maxDistance = this.followSettings.maxDistance
     this.controls.minPolarAngle = this.followSettings.minPolarAngle
     this.controls.maxPolarAngle = this.followSettings.maxPolarAngle
 
