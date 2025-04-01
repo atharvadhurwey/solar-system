@@ -15,7 +15,7 @@ export default class Camera {
     this.currentTarget = null
     this.previousMouse = new THREE.Vector2()
     this.spherical = new THREE.Spherical(5, Math.PI / 2, 0) // Default zoom level
-    this.maxCameraDistance = 50000
+    this.maxCameraDistance = 200000
 
     this.setInstance()
     this.setControls()
@@ -24,7 +24,7 @@ export default class Camera {
 
   setInstance() {
     this.instance = new THREE.PerspectiveCamera(25, this.sizes.width / this.sizes.height, 0.1, this.maxCameraDistance)
-    this.instance.position.set(0, 119, 0)
+    this.instance.position.set(0, 1000, 0)
     this.scene.add(this.instance)
   }
 
@@ -91,6 +91,7 @@ export default class Camera {
 
     if (target.name === "Sun") {
       console.log("Camera is now following the Sun")
+      this.spherical.radius = minDistance * 2 // Set initial zoom level
       const offset = new THREE.Vector3().setFromSpherical(this.spherical)
       const desiredPosition = target.position.clone().add(offset)
 
@@ -100,7 +101,6 @@ export default class Camera {
       this.isCameraFollowing = false
       this.controls.enableZoom = true
       this.controls.target.copy(target.position)
-      this.spherical.radius = minDistance * 2 // Set initial zoom level
       this.controls.maxDistance = this.maxCameraDistance
       this.controls.update()
       return
@@ -109,8 +109,6 @@ export default class Camera {
     this.currentTarget = target
     this.isCameraFollowing = true
     this.controls.enableZoom = false
-
-    console.log(this.currentTarget)
 
     // Default values with ability to override
 

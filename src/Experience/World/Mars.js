@@ -60,7 +60,7 @@ export default class Mars {
 
     this.setMars()
     this.setAtmosphere()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 6)
   }
 
   createOrbit(distanceScale, segments) {

@@ -18,7 +18,7 @@ export default class World {
     this.resources.on("ready", () => {
       // Setup
       const timeScale = 100000
-      const distanceScale = 1
+      const distanceScale = 4
       const planetSizes = {
         earthSize: 1, // Earth is the reference (1 unit)
         mercurySize: 0.38,
@@ -32,7 +32,7 @@ export default class World {
       }
 
       // Setup
-      this.sun = new Sun()
+      this.sun = new Sun({ planetSize: planetSizes.sunSize })
       this.mercury = new Mercury({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.mercurySize })
       this.venus = new Venus({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.venusSize })
       this.earth = new Earth({ distanceScale, scale: 1, timeScale, planetSize: planetSizes.earthSize })

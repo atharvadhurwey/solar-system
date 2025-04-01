@@ -71,7 +71,7 @@ export default class Venus {
     // Setup
     this.setVenus()
     this.setAtmosphere()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 5)
   }
 
   createOrbit(distanceScale, segments) {

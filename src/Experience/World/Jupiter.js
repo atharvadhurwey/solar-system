@@ -60,7 +60,7 @@ export default class Jupiter {
 
     this.setJupiter()
     this.setAtmosphere()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 6)
   }
 
   createOrbit(distanceScale, segments) {

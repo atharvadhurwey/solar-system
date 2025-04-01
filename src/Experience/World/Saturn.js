@@ -65,7 +65,7 @@ export default class Saturn {
     this.setSaturn()
     this.setAtmosphere()
     this.setRings()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 6)
   }
 
   createOrbit(distanceScale, segments) {

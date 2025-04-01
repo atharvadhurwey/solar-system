@@ -60,7 +60,7 @@ export default class Neptune {
 
     this.setNeptune()
     this.setAtmosphere()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 8)
   }
 
   createOrbit(distanceScale, segments) {

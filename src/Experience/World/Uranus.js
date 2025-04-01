@@ -65,7 +65,7 @@ export default class Uranus {
     this.setUranus()
     this.setAtmosphere()
     this.setRings()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 8)
   }
 
   createOrbit(distanceScale, segments) {

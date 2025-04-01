@@ -14,7 +14,7 @@ import sunRaysVertex from "../../shaders/sun/rays/vertex.glsl"
 import sunRaysFragment from "../../shaders/sun/rays/fragment.glsl"
 
 export default class Sun {
-  constructor() {
+  constructor(_options) {
     this.experience = new Experience()
     this.scene = this.experience.scene
     this.time = this.experience.time
@@ -28,11 +28,14 @@ export default class Sun {
 
     // debug
     if (this.debug.active) {
-      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.sun) }, "updateCamera").name("move to sun")
+      this.debugFolder.add({ updateCamera: () => this.camera.setFollowTarget(this.sun, { sunSize: this.sunSize }) }, "updateCamera").name("move to sun")
     }
 
+    // Options
+    this.sunSize = _options.planetSize
+
     // Common
-    this.basicSphereGeometry = new THREE.SphereGeometry(1, 32, 32)
+    this.basicSphereGeometry = new THREE.SphereGeometry(this.sunSize, 32, 32)
 
     // Setting CubeTexture
     this.cubeScene = new THREE.Scene()
@@ -42,7 +45,7 @@ export default class Sun {
     // Setting Sun
     this.setSun()
     this.setSunAtmosphere()
-    this.setSunRays()
+    // this.setSunRays()
   }
 
   setCubeCamera() {
@@ -53,7 +56,7 @@ export default class Sun {
       encoding: THREE.sRGBEncoding,
     })
 
-    this.cubeCamera = new THREE.CubeCamera(0.1, 100, this.cubeRenderTarget)
+    this.cubeCamera = new THREE.CubeCamera(0.1, 200, this.cubeRenderTarget)
   }
 
   setCubeMesh() {
@@ -217,6 +220,6 @@ export default class Sun {
     this.cubeMaterial.uniforms.uTime.value = this.time.elapsed
     this.sunMaterial.uniforms.uTime.value = this.time.elapsed
     this.sunAtmosphereMaterial.uniforms.uTime.value = this.time.elapsed
-    this.sunRaysMaterial.uniforms.uTime.value = this.time.elapsed
+    // this.sunRaysMaterial.uniforms.uTime.value = this.time.elapsed
   }
 }

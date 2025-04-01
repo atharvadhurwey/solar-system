@@ -73,7 +73,7 @@ export default class Earth {
 
     this.setEarth()
     this.setAtmosphere()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 5)
   }
 
   createOrbit(distanceScale, segments) {

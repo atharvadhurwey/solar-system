@@ -66,7 +66,7 @@ export default class Mercury {
 
     // Setup
     this.setMercury()
-    this.createOrbit(this.distanceScale, 100)
+    this.createOrbit(this.distanceScale, 100 * 5)
   }
 
   createOrbit(distanceScale, segments) {
