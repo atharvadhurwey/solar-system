@@ -1,4 +1,8 @@
-# Three.js Journey
+# Solar System Vision
+
+## Links
+- [Live](https://solar-system-vision.vercel.app/#debug)
+- [Github](https://github.com/atharvadhurwey/solar-system)
 
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).
