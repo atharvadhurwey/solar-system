@@ -62,8 +62,14 @@ export default class Camera {
 
     this.onWheel = (event) => {
       if (this.isCameraFollowing) {
-        this.spherical.radius += event.deltaY * 0.01 // Adjust zoom speed
+        const baseSpeed = 0.01 // Base zoom sensitivity
+        const scaleFactor = 0.05 // Adjust this for more/less exponential effect
 
+        // logarithmic zoom speed calculation
+        const zoomSpeed = baseSpeed * Math.log1p(scaleFactor * this.spherical.radius) * 2
+
+        // Apply zooming
+        this.spherical.radius += event.deltaY * zoomSpeed
         // Use followSettings to clamp zoom
         if (this.followSettings) {
           this.spherical.radius = Math.max(this.followSettings.minDistance, this.spherical.radius)
@@ -104,7 +110,12 @@ export default class Camera {
     this.isCameraFollowing = true
     this.controls.enableZoom = false
 
+    console.log(this.currentTarget)
+
     // Default values with ability to override
+
+    // Store initial spherical radius for consistent zooming
+    this.initialSphericalRadius = this.spherical.radius
 
     this.followSettings = {
       minDistance: minDistance || 5, // Minimum zoom distance
