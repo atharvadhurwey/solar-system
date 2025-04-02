@@ -14,6 +14,9 @@ export default class RaycasterHandler {
     this.planets = [] // Initialize planets array
     this.selectedPlanet = null
 
+    this.lastClickTime = 0 // Stores the timestamp of the last click
+    this.doubleClickThreshold = 300 // Time threshold in milliseconds
+
     this.setupEventListeners()
   }
 
@@ -45,14 +48,19 @@ export default class RaycasterHandler {
       const planetName = selectedPlanet.name.replace("selectionDisc-", "")
 
       // using this so that we don't start following the same planet again
-      if (this.selectedPlanet == planetName) {
+      if (this.selectedPlanet == planetName) return
+
+      // Check if clicked object is the Sun
+      if (planetName === "Sun") {
+        const currentTime = Date.now()
+        if (currentTime - this.lastClickTime < this.doubleClickThreshold) {
+          this.camera.setFollowTarget(this.planets.find((p) => p.name === planetName)) // Follow the Sun
+        }
+        this.lastClickTime = currentTime
         return
       }
-
       // Set camera to follow the clicked planet
       this.camera.setFollowTarget(this.planets.find((p) => p.name === planetName))
-
-      this.selectedPlanet = this.camera.currentTarget.name
     }
   }
 }
