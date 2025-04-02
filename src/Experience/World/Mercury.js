@@ -4,9 +4,6 @@ import Experience from "../Experience.js"
 import mercuryVertexShader from "../../shaders/mercury/surface/vertex.glsl"
 import mercuryFragmentShader from "../../shaders/mercury/surface/fragment.glsl"
 
-// import atmosphereVertexShader from "../../shaders/mercury/atmosphere/vertex.glsl"
-// import atmosphereFragmentShader from "../../shaders/mercury/atmosphere/fragment.glsl"
-
 export default class Mercury {
   constructor(_options) {
     this.experience = new Experience()
@@ -15,6 +12,7 @@ export default class Mercury {
     this.time = this.experience.time
     this.debug = this.experience.debug
     this.camera = this.experience.camera
+    this.planet = this.experience.planet
 
     // Debug
     if (this.debug.active) {
@@ -24,27 +22,8 @@ export default class Mercury {
     // Resource
     this.mercuryTexture = this.resources.items.mercuryTexture
 
-    // mercury Parameters
-    // this.mercuryParameters = {
-    //   atmosphereColor: "#ffffff",
-    //   atmosphereTwilightColor: "#ffffff",
-    // }
-
     // debug
     if (this.debug.active) {
-      // this.debugFolder
-      //   .addColor(this.mercuryParameters, "atmosphereColor")
-      //   .name("atmosphereColor")
-      //   .onChange(() => {
-      //     this.mercuryMaterial.uniforms.uAtmosphereColor.value.set(this.mercuryParameters.atmosphereColor)
-      //   })
-
-      // this.debugFolder
-      //   .addColor(this.mercuryParameters, "atmosphereTwilightColor")
-      //   .name("atmosphereTwilightColor")
-      //   .onChange(() => {
-      //     this.mercuryMaterial.uniforms.uAtmosphereTwilightColor.value.set(this.mercuryParameters.atmosphereTwilightColor)
-      //   })
       this.debugFolder
         .add(
           {
@@ -67,6 +46,9 @@ export default class Mercury {
     // Setup
     this.setMercury()
     this.createOrbit(this.distanceScale, 100 * 5)
+    this.selectionDisc = this.planet.createSelectionDisc(this.mercury, 0x888888)
+    this.experience.raycaster.addPlanet(this.selectionDisc) // Register the planet for raycasting
+    this.experience.raycaster.addPlanet(this.mercury)
   }
 
   createOrbit(distanceScale, segments) {
@@ -130,6 +112,14 @@ export default class Mercury {
     // update position
     this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
     this.mercury.position.copy(this.reusableVec3)
+
+    // update ring
+    this.selectionDisc.position.copy(this.reusableVec3)
+    this.selectionDisc.lookAt(this.camera.instance.position) // Always face the camera
+
+    // Update the ring scale based on distance from the camera
+    const distance = this.camera.instance.position.distanceTo(this.mercury.position)
+    this.planet.updatePlanet(this.selectionDisc, distance)
 
     // updating uniforms
     this.mercuryMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)

@@ -15,6 +15,7 @@ export default class Neptune {
     this.time = this.experience.time
     this.debug = this.experience.debug
     this.camera = this.experience.camera
+    this.planet = this.experience.planet
 
     // Debug
     if (this.debug.active) {
@@ -61,6 +62,9 @@ export default class Neptune {
     this.setNeptune()
     this.setAtmosphere()
     this.createOrbit(this.distanceScale, 100 * 8)
+    this.selectionDisc = this.planet.createSelectionDisc(this.neptune, 0x888888)
+    this.experience.raycaster.addPlanet(this.selectionDisc) // Register the planet for raycasting
+    this.experience.raycaster.addPlanet(this.neptune)
   }
 
   createOrbit(distanceScale, segments) {
@@ -148,6 +152,14 @@ export default class Neptune {
     this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
     this.neptune.position.copy(this.reusableVec3)
     this.neptuneAtmosphere.position.copy(this.reusableVec3)
+
+    // update disc
+    this.selectionDisc.position.copy(this.reusableVec3)
+    this.selectionDisc.lookAt(this.camera.instance.position) // Always face the camera
+
+    // Update the disc scale based on distance from the camera
+    const distance = this.camera.instance.position.distanceTo(this.neptune.position)
+    this.planet.updatePlanet(this.selectionDisc, distance)
 
     // updating uniforms
     this.neptuneMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)

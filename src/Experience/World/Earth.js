@@ -15,6 +15,7 @@ export default class Earth {
     this.time = this.experience.time
     this.debug = this.experience.debug
     this.camera = this.experience.camera
+    this.planet = this.experience.planet
 
     // Debug
     if (this.debug.active) {
@@ -74,6 +75,9 @@ export default class Earth {
     this.setEarth()
     this.setAtmosphere()
     this.createOrbit(this.distanceScale, 100 * 5)
+    this.selectionDisc = this.planet.createSelectionDisc(this.earth, 0x888888)
+    this.experience.raycaster.addPlanet(this.selectionDisc) // Register the planet for raycasting
+    this.experience.raycaster.addPlanet(this.earth)
   }
 
   createOrbit(distanceScale, segments) {
@@ -162,6 +166,14 @@ export default class Earth {
     this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
     this.earth.position.copy(this.reusableVec3)
     this.earthAtmosphere.position.copy(this.reusableVec3)
+
+    // update disc
+    this.selectionDisc.position.copy(this.reusableVec3)
+    this.selectionDisc.lookAt(this.camera.instance.position) // Always face the camera
+
+    // Update the disc scale based on distance from the camera
+    const distance = this.camera.instance.position.distanceTo(this.earth.position)
+    this.planet.updatePlanet(this.selectionDisc, distance)
 
     // updating uniforms
     this.earthMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)

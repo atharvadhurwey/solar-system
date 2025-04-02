@@ -46,6 +46,7 @@ export default class Sun {
     this.setSun()
     this.setSunAtmosphere()
     // this.setSunRays()
+    this.experience.raycaster.addPlanet(this.sun)
   }
 
   setCubeCamera() {
@@ -213,10 +214,11 @@ export default class Sun {
   }
 
   update() {
+    // Updating cube camera & texture
     this.cubeCamera.update(this.experience.renderer.instance, this.cubeScene)
-
     this.sunMaterial.uniforms.uCubePerlin.value = this.cubeRenderTarget.texture
 
+    // updating uniforms
     this.cubeMaterial.uniforms.uTime.value = this.time.elapsed
     this.sunMaterial.uniforms.uTime.value = this.time.elapsed
     this.sunAtmosphereMaterial.uniforms.uTime.value = this.time.elapsed

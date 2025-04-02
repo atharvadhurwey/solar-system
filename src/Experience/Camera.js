@@ -72,7 +72,7 @@ export default class Camera {
         this.spherical.radius += event.deltaY * zoomSpeed
         // Use followSettings to clamp zoom
         if (this.followSettings) {
-          this.spherical.radius = Math.max(this.followSettings.minDistance, this.spherical.radius)
+          // this.spherical.radius = Math.max(this.followSettings.minDistance, this.spherical.radius)
         }
       }
     }

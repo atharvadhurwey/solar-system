@@ -18,6 +18,7 @@ export default class Saturn {
     this.time = this.experience.time
     this.debug = this.experience.debug
     this.camera = this.experience.camera
+    this.planet = this.experience.planet
 
     // Debug
     if (this.debug.active) {
@@ -66,6 +67,9 @@ export default class Saturn {
     this.setAtmosphere()
     this.setRings()
     this.createOrbit(this.distanceScale, 100 * 6)
+    this.selectionDisc = this.planet.createSelectionDisc(this.saturn, 0x888888)
+    this.experience.raycaster.addPlanet(this.selectionDisc) // Register the planet for raycasting
+    this.experience.raycaster.addPlanet(this.saturn)
   }
 
   createOrbit(distanceScale, segments) {
@@ -179,6 +183,14 @@ export default class Saturn {
     this.saturn.position.copy(this.reusableVec3)
     this.saturnAtmosphere.position.copy(this.reusableVec3)
     this.rings.position.copy(this.reusableVec3)
+
+    // update disc
+    this.selectionDisc.position.copy(this.reusableVec3)
+    this.selectionDisc.lookAt(this.camera.instance.position) // Always face the camera
+
+    // Update the disc scale based on distance from the camera
+    const distance = this.camera.instance.position.distanceTo(this.saturn.position)
+    this.planet.updatePlanet(this.selectionDisc, distance)
 
     // updating uniforms
     this.saturnMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)

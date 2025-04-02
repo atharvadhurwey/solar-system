@@ -9,6 +9,8 @@ import World from "./World/World.js"
 import Resources from "./Utils/Resources.js"
 
 import sources from "./sources.js"
+import RaycasterHandler from "./RaycasterHandler.js"
+import Planet from "./World/Planet.js"
 
 let instance = null
 
@@ -35,6 +37,8 @@ export default class Experience {
     this.renderer = new Renderer()
     this.resources = new Resources(sources)
     this.world = new World()
+    this.planet = new Planet()
+    this.raycaster = new RaycasterHandler()
 
     // Resize event
     this.sizes.on("resize", () => {

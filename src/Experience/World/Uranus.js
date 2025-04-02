@@ -18,6 +18,7 @@ export default class Uranus {
     this.time = this.experience.time
     this.debug = this.experience.debug
     this.camera = this.experience.camera
+    this.planet = this.experience.planet
 
     // Debug
     if (this.debug.active) {
@@ -66,6 +67,9 @@ export default class Uranus {
     this.setAtmosphere()
     this.setRings()
     this.createOrbit(this.distanceScale, 100 * 8)
+    this.selectionDisc = this.planet.createSelectionDisc(this.uranus, 0x888888)
+    this.experience.raycaster.addPlanet(this.selectionDisc) // Register the planet for raycasting
+    this.experience.raycaster.addPlanet(this.uranus)
   }
 
   createOrbit(distanceScale, segments) {
@@ -180,6 +184,14 @@ export default class Uranus {
     this.uranus.position.copy(this.reusableVec3)
     this.uranusAtmosphere.position.copy(this.reusableVec3)
     this.rings.position.copy(this.reusableVec3)
+
+    // update disc
+    this.selectionDisc.position.copy(this.reusableVec3)
+    this.selectionDisc.lookAt(this.camera.instance.position) // Always face the camera
+
+    // Update the disc scale based on distance from the camera
+    const distance = this.camera.instance.position.distanceTo(this.uranus.position)
+    this.planet.updatePlanet(this.selectionDisc, distance)
 
     // updating uniforms
     this.uranusMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)

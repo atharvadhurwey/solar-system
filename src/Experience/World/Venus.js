@@ -15,6 +15,7 @@ export default class Venus {
     this.time = this.experience.time
     this.debug = this.experience.debug
     this.camera = this.experience.camera
+    this.planet = this.experience.planet
 
     // Debug
     if (this.debug.active) {
@@ -72,6 +73,9 @@ export default class Venus {
     this.setVenus()
     this.setAtmosphere()
     this.createOrbit(this.distanceScale, 100 * 5)
+    this.selectionDisc = this.planet.createSelectionDisc(this.venus, 0x888888)
+    this.experience.raycaster.addPlanet(this.selectionDisc) // Register the planet for raycasting
+    this.experience.raycaster.addPlanet(this.venus)
   }
 
   createOrbit(distanceScale, segments) {
@@ -161,6 +165,14 @@ export default class Venus {
     this.reusableVec3.copy(this.orbitCurve.getPointAt(t))
     this.venus.position.copy(this.reusableVec3)
     this.venusAtmosphere.position.copy(this.reusableVec3)
+
+    // update disc
+    this.selectionDisc.position.copy(this.reusableVec3)
+    this.selectionDisc.lookAt(this.camera.instance.position) // Always face the camera
+
+    // Update the disc scale based on distance from the camera
+    const distance = this.camera.instance.position.distanceTo(this.venus.position)
+    this.planet.updatePlanet(this.selectionDisc, distance)
 
     // updating uniforms
     this.venusMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
