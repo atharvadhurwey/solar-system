@@ -49,6 +49,15 @@ export default class Experience {
     this.time.on("tick", () => {
       this.update()
     })
+
+    // update current target
+    this.camera.on("targetChanged", () => {
+      this.updateTarget()
+    })
+  }
+
+  updateTarget() {
+    this.raycaster.updateTarget()
   }
 
   resize() {

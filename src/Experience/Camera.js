@@ -1,9 +1,12 @@
 import * as THREE from "three"
 import Experience from "./Experience.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import EventEmitter from "./Utils/EventEmitter.js"
 
-export default class Camera {
+export default class Camera extends EventEmitter {
   constructor() {
+    super()
+
     this.experience = new Experience()
     this.sizes = this.experience.sizes
     this.scene = this.experience.scene
@@ -24,7 +27,7 @@ export default class Camera {
 
   setInstance() {
     this.instance = new THREE.PerspectiveCamera(25, this.sizes.width / this.sizes.height, 0.1, this.maxCameraDistance)
-    this.instance.position.set(0, 1000, 0)
+    this.instance.position.set(0, 2000, 0)
     this.scene.add(this.instance)
   }
 
@@ -89,6 +92,9 @@ export default class Camera {
     // Disable camera follow and zoom for the Sun
     const minDistance = target.geometry.parameters.radius + target.geometry.parameters.radius * 2
 
+    this.currentTarget = target
+    this.trigger("targetChanged")
+
     if (target.name === "Sun") {
       console.log("Camera is now following the Sun")
       this.spherical.radius = minDistance * 2 // Set initial zoom level
@@ -97,7 +103,6 @@ export default class Camera {
 
       // Update camera position
       this.instance.position.copy(desiredPosition)
-      this.currentTarget = null
       this.isCameraFollowing = false
       this.controls.enableZoom = true
       this.controls.target.copy(target.position)
@@ -106,7 +111,6 @@ export default class Camera {
       return
     }
 
-    this.currentTarget = target
     this.isCameraFollowing = true
     this.controls.enableZoom = false
 

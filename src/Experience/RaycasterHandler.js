@@ -22,6 +22,11 @@ export default class RaycasterHandler {
     this.planets.push(planetMesh)
   }
 
+  // call this method to update selected planet
+  updateTarget() {
+    this.selectedPlanet = this.camera.currentTarget.name
+  }
+
   setupEventListeners() {
     this.canvas.addEventListener("click", (event) => this.onMouseClick(event))
   }
@@ -44,10 +49,10 @@ export default class RaycasterHandler {
         return
       }
 
-      this.selectedPlanet = planetName // Store the selected planet name
-
       // Set camera to follow the clicked planet
       this.camera.setFollowTarget(this.planets.find((p) => p.name === planetName))
+
+      this.selectedPlanet = this.camera.currentTarget.name
     }
   }
 }
