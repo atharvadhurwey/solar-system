@@ -22,6 +22,7 @@ export default class Planet {
 
     const selectionDisc = new THREE.Mesh(geometry, material)
     selectionDisc.name = `selectionDisc-${planet.name}` // Unique name for identification
+    selectionDisc.userData.planetName = planet.name
     selectionDisc.position.copy(planet.position)
     selectionDisc.lookAt(this.camera.instance.position) // Always face the camera
 
@@ -32,7 +33,7 @@ export default class Planet {
     return selectionDisc
   }
 
-  updatePlanet(planetDisc, distance) {
+  updatePlanetDisc(planetDisc, distance) {
     const scaleFactor = Math.min(distance * 0.01, this.maxScale) // Adjust sensitivity
 
     planetDisc.scale.set(scaleFactor, scaleFactor, scaleFactor)

@@ -54,6 +54,15 @@ export default class Experience {
     this.camera.on("targetChanged", () => {
       this.updateTarget()
     })
+
+    // update mouse position
+    this.camera.on("mouseMove", () => {
+      this.updateMouse()
+    })
+  }
+
+  updateMouse() {
+    this.raycaster.updateMouse()
   }
 
   updateTarget() {

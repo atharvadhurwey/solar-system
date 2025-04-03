@@ -16,6 +16,7 @@ export default class Camera extends EventEmitter {
     this.isMouseDown = false
     this.isCameraFollowing = false
     this.currentTarget = null
+    this.mouse = new THREE.Vector2()
     this.previousMouse = new THREE.Vector2()
     this.spherical = new THREE.Spherical(5, Math.PI / 2, 0) // Default zoom level
     this.maxCameraDistance = 200000
@@ -47,6 +48,10 @@ export default class Camera extends EventEmitter {
     }
 
     this.onMouseMove = (event) => {
+      this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+      this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+      this.trigger("mouseMove")
+
       if (this.isMouseDown && this.isCameraFollowing) {
         const deltaX = (event.clientX - this.previousMouse.x) * 0.005
         const deltaY = (event.clientY - this.previousMouse.y) * 0.005

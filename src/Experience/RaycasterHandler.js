@@ -17,6 +17,8 @@ export default class RaycasterHandler {
     this.lastClickTime = 0 // Stores the timestamp of the last click
     this.doubleClickThreshold = 300 // Time threshold in milliseconds
 
+    this.planetTooltip = document.getElementById("planet-tooltip")
+
     this.setupEventListeners()
   }
 
@@ -30,14 +32,19 @@ export default class RaycasterHandler {
     this.selectedPlanet = this.camera.currentTarget.name
   }
 
+  updateMouse() {
+    this.mouse.x = this.camera.mouse.x
+    this.mouse.y = this.camera.mouse.y
+
+    // Perform raycasting for hover effect
+    this.onHoverPlanet()
+  }
+
   setupEventListeners() {
     this.canvas.addEventListener("click", (event) => this.onMouseClick(event))
   }
 
   onMouseClick(event) {
-    this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1
-    this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
-
     // Perform raycasting
     this.raycaster.setFromCamera(this.mouse, this.camera.instance)
     const intersects = this.raycaster.intersectObjects(this.planets)
@@ -50,7 +57,7 @@ export default class RaycasterHandler {
       // using this so that we don't start following the same planet again
       if (this.selectedPlanet == planetName) return
 
-      // Check if clicked object is the Sun
+      // Check if clicked object is the Sun for double click functionality
       if (planetName === "Sun") {
         const currentTime = Date.now()
         if (currentTime - this.lastClickTime < this.doubleClickThreshold) {
@@ -61,6 +68,26 @@ export default class RaycasterHandler {
       }
       // Set camera to follow the clicked planet
       this.camera.setFollowTarget(this.planets.find((p) => p.name === planetName))
+    }
+  }
+
+  onHoverPlanet() {
+    this.raycaster.setFromCamera(this.mouse, this.camera.instance)
+    const intersects = this.raycaster.intersectObjects(this.planets, true)
+
+    if (intersects.length > 0) {
+      const hoveredPlanet = intersects[0].object
+      const planetName = hoveredPlanet.name.replace("selectionDisc-", "")
+
+      console.log(planetName)
+
+      // Show tooltip
+      this.planetTooltip.style.display = "block"
+      this.planetTooltip.innerText = planetName
+      this.planetTooltip.style.left = event.clientX + 10 + "px"
+      this.planetTooltip.style.top = event.clientY + 10 + "px"
+    } else {
+      this.planetTooltip.style.display = "none"
     }
   }
 }

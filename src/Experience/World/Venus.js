@@ -172,7 +172,7 @@ export default class Venus {
 
     // Update the disc scale based on distance from the camera
     const distance = this.camera.instance.position.distanceTo(this.venus.position)
-    this.planet.updatePlanet(this.selectionDisc, distance)
+    this.planet.updatePlanetDisc(this.selectionDisc, distance)
 
     // updating uniforms
     this.venusMaterial.uniforms.uPlanetPosition.value.copy(this.reusableVec3)
