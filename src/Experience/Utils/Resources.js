@@ -64,7 +64,14 @@ export default class Resources extends EventEmitter {
     this.loaded++
 
     if (this.loaded === this.toLoad) {
+      this.finishLoading()
       this.trigger("ready")
     }
+  }
+
+  finishLoading() {
+    const loadingScreen = document.getElementById("loading-screen")
+    loadingScreen.style.opacity = "0"
+    loadingScreen.style.display = "none"
   }
 }

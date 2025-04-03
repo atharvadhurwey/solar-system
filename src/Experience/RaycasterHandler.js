@@ -79,8 +79,6 @@ export default class RaycasterHandler {
       const hoveredPlanet = intersects[0].object
       const planetName = hoveredPlanet.name.replace("selectionDisc-", "")
 
-      console.log(planetName)
-
       // Show tooltip
       this.planetTooltip.style.display = "block"
       this.planetTooltip.innerText = planetName
